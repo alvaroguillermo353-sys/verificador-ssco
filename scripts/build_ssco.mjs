@@ -3,7 +3,7 @@
 import * as XLSX from 'xlsx';
 import fs from 'node:fs';
 
-const URL = 'https://www.sunat.gob.pe/padronesnotificaciones/sujesincapacidadOperativa.xlsx';
+const URL = 'https://www.sunat.gob.pe/padronesnotificaciones/ssco/sujesincapacidadOperativa.xlsx';
 const UA  = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
 /* --- misma lógica de parseo que el frontend --- */
