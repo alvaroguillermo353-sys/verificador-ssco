@@ -1,0 +1,13 @@
+{
+  "name": "verificador-ssco",
+  "version": "1.0.0",
+  "description": "Cruce del Registro de Compras (SIRE/RCE) contra el padron SSCO de SUNAT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build_ssco.mjs"
+  },
+  "dependencies": {
+    "xlsx": "0.18.5"
+  }
+}
