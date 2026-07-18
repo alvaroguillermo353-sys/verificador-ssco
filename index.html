@@ -5,21 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Verificador SSCO · Cruce con Registro de Compras SIRE</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
   :root{
-    --bg:#0f172a; --panel:#ffffff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
-    --brand:#0e4d92; --brand-2:#1769c6; --brand-soft:#eaf2fb;
-    --danger:#b42318; --danger-soft:#fef3f2; --danger-line:#fda29b;
+    --page:#e9e3e6; --panel:#ffffff; --ink:#2a2230; --muted:#7c6f78; --line:#e4dbe0;
+    --brand:#6d1f3c; --brand-2:#8a2a52; --brand-soft:#f4e9ef; --brand-line:#e6cdd8; --brand-dark:#4c1327;
+    --gold:#c2900f;
+    --danger:#b42318; --danger-soft:#fdecea; --danger-line:#f1a79f;
     --ok:#067647; --ok-soft:#ecfdf3; --ok-line:#abefc6;
-    --warn:#b54708; --warn-soft:#fffaeb; --warn-line:#fde9c8;
+    --warn:#b54708; --warn-soft:#fff6ec; --warn-line:#fadcae;
     --radius:14px; --shadow:0 1px 3px rgba(16,24,40,.08),0 1px 2px rgba(16,24,40,.06);
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
-       color:var(--ink);background:#f1f5f9;line-height:1.5;-webkit-font-smoothing:antialiased}
+       color:var(--ink);background:var(--page);line-height:1.5;-webkit-font-smoothing:antialiased}
   .wrap{max-width:1080px;margin:0 auto;padding:0 20px 80px}
-  header.top{background:linear-gradient(135deg,var(--brand) 0%,#0a3b70 100%);color:#fff;padding:34px 0 30px;margin-bottom:26px;
-             box-shadow:0 4px 20px rgba(14,77,146,.25)}
+  header.top{background:linear-gradient(135deg,var(--brand) 0%,var(--brand-dark) 100%);color:#fff;padding:34px 0 30px;margin-bottom:26px;
+             box-shadow:0 4px 20px rgba(76,19,39,.28)}
+  header.top .badge{border-bottom:2px solid var(--gold)}
   header.top .wrap{padding-bottom:0}
   .badge{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.15);
          border:1px solid rgba(255,255,255,.25);padding:5px 12px;border-radius:999px;font-size:12.5px;font-weight:600;letter-spacing:.3px}
@@ -39,7 +42,7 @@
         box-shadow:var(--shadow);padding:22px 24px;margin-bottom:20px}
   .step-head{display:flex;align-items:center;gap:12px;margin-bottom:6px}
   .stepnum{flex:0 0 30px;height:30px;border-radius:50%;background:var(--brand-soft);color:var(--brand);
-           display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;border:1px solid #cfe0f5}
+           display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;border:1px solid var(--brand-line)}
   .step-head h2{font-size:17px;margin:0}
   .step-desc{color:var(--muted);font-size:13.5px;margin:2px 0 16px 42px}
   /* estado padrón auto */
@@ -76,8 +79,8 @@
   .hint a{color:var(--brand-2);font-weight:600}
   .cta{text-align:center;margin:6px 0 26px}
   button.go{background:var(--brand);color:#fff;border:none;padding:14px 40px;border-radius:11px;font-size:16px;
-            font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(14,77,146,.3);transition:.15s}
-  button.go:hover:not(:disabled){background:#0a3b70;transform:translateY(-1px)}
+            font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(109,31,60,.3);transition:.15s}
+  button.go:hover:not(:disabled){background:var(--brand-dark);transform:translateY(-1px)}
   button.go:disabled{background:#cbd5e1;cursor:not-allowed;box-shadow:none}
   #results{display:none}
   .alert{border-radius:var(--radius);padding:22px 24px;margin-bottom:22px;display:flex;gap:16px;align-items:flex-start;box-shadow:var(--shadow)}
@@ -115,9 +118,43 @@
   footer b{color:var(--ink)}
   .privacy{display:inline-flex;align-items:center;gap:6px;color:var(--ok);font-weight:600;font-size:12.5px}
   .filetag{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;color:var(--brand);
-           background:var(--brand-soft);border:1px solid #cfe0f5;padding:3px 10px;border-radius:999px;font-weight:600}
+           background:var(--brand-soft);border:1px solid var(--brand-line);padding:3px 10px;border-radius:999px;font-weight:600}
   .clear{background:none;border:none;color:var(--danger);cursor:pointer;font-size:12px;font-weight:600;margin-left:6px}
   @media(max-width:640px){h1{font-size:22px}.kpi .v{font-size:22px}thead th,tbody td{padding:9px 8px}}
+  .tablewrap{overflow-x:auto}
+  tfoot td{background:var(--brand-soft);border-top:2px solid var(--brand-line);color:var(--brand);padding:11px 14px}
+  /* ===== Informe imprimible (PDF) ===== */
+  #printReport{display:none}
+  @media print{
+    body{background:#fff !important;margin:0}
+    body > *{display:none !important}
+    body > #printReport{display:block !important}
+  }
+  @page{size:A4;margin:12mm}
+  #printReport{font-family:'Segoe UI',Arial,sans-serif;color:#26202b;font-size:11px}
+  .pr-head{display:flex;align-items:center;gap:14px;border-bottom:3px solid var(--brand);padding-bottom:10px;margin-bottom:12px}
+  .pr-logo{width:60px;height:60px;flex:0 0 60px}.pr-logo svg{width:100%;height:100%}
+  .pr-title{font-size:19px;font-weight:800;color:var(--brand)}
+  .pr-sub{font-size:10.5px;color:#6a5f66}
+  .pr-meta{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:11px}
+  .pr-meta td{padding:4px 8px;border:1px solid #e2d8dd}
+  .pr-meta td:first-child{background:#f6eef2;font-weight:700;width:210px;color:var(--brand)}
+  .pr-alert{padding:9px 12px;border-radius:6px;font-size:12px;margin-bottom:14px}
+  .pr-alert.bad{background:#fdecea;border:1.5px solid #f1a79f;color:#b42318}
+  .pr-alert.good{background:#ecfdf3;border:1.5px solid #abefc6;color:#067647}
+  .pr-block{margin-bottom:12px;break-inside:avoid}
+  .pr-prov{font-size:12px;margin-bottom:4px}.pr-prov b{font-family:'Consolas',monospace}
+  .pr-pill{background:var(--brand);color:#fff;border-radius:20px;padding:1px 8px;font-size:9px;font-weight:700}
+  .pr-det{font-size:9.5px;color:#6a5f66;margin-top:2px}
+  .pr-tbl{width:100%;border-collapse:collapse;font-size:10px}
+  .pr-tbl th{background:var(--brand);color:#fff;padding:5px 6px;text-align:left;font-size:9px}
+  .pr-tbl td{padding:4px 6px;border:1px solid #e6dbe0}
+  .pr-tbl .num{text-align:right}
+  .pr-tbl tfoot td{background:#f6eef2;font-weight:700}
+  .pr-tot{margin:14px 0 0 auto;border-collapse:collapse;min-width:320px;font-size:12px}
+  .pr-tot td{padding:6px 12px;border:1px solid #e2d8dd}.pr-tot td.num{text-align:right;font-weight:700}
+  .pr-tot .grand td{background:var(--brand);color:#fff;font-size:13px}
+  .pr-foot{margin-top:16px;padding-top:8px;border-top:1px solid #e2d8dd;font-size:9px;color:#6a5f66;line-height:1.5}
 </style>
 </head>
 <body>
@@ -217,6 +254,8 @@
   </footer>
 </div>
 
+<div id="printReport"></div>
+
 <script>
 "use strict";
 const state = { ssco:null, rce:null, fecha:'' };
@@ -311,12 +350,14 @@ function parseSSCO(rows){
   } return map;
 }
 /* Posiciones del archivo plano SIRE-RCE (col 0 = RUC del contribuyente; col 12 = RUC del proveedor) */
-const RCE_POS={own:0,fecha:4,tipoCP:6,serie:7,numero:9,ruc:12,razon:13,base:14,igv:15,importe:24};
+const RCE_POS={own:0,ownName:1,periodo:2,fecha:4,tipoCP:6,serie:7,numero:9,ruc:12,razon:13,base:14,igv:15,importe:24};
 function parseRCE(rows){
   const hr=findHeaderRow(rows);
-  let m={own:-1,fecha:-1,tipoCP:-1,serie:-1,numero:-1,ruc:-1,razon:-1,base:-1,igv:-1,importe:-1}; let start=0,mode='pos';
+  let m={own:-1,ownName:-1,periodo:-1,fecha:-1,tipoCP:-1,serie:-1,numero:-1,ruc:-1,razon:-1,base:-1,igv:-1,importe:-1}; let start=0,mode='pos';
   if(hr>=0){ const H=rows[hr];
     m.own  = colIndex(H,[/^RUC$/,/^RUC\b/]);                                              // RUC del contribuyente (excluir)
+    m.ownName= colIndex(H,[/RAZON/,/NOMBRE/,/APELLIDO/]);                                 // razón del contribuyente (1ra)
+    m.periodo= colIndex(H,[/PERIODO/]);
     m.ruc  = colIndex(H,[/NRO.*DOC.*IDENT/,/N.*DOC.*IDENT/,/RUC.*PROVEE/,/DOC.*PROVEE/,/N.*DOC.*PROVEE/],{exclude:/TIPO/}); // RUC del proveedor
     m.razon= colIndex(H,[/RAZON/,/APELLIDO/,/NOMBRE/,/DENOMINAC/],{after:m.ruc});
     m.fecha= colIndex(H,[/FECHA.*EMIS/,/FEC.*EMIS/,/^FECHA/]);
@@ -330,8 +371,8 @@ function parseRCE(rows){
   }
   const num=v=>{ const n=parseFloat(String(v==null?'':v).replace(/[^\d.\-]/g,'')); return isFinite(n)?n:0; };
   const get=(r,key)=>{ const idx=mode==='head'?m[key]:RCE_POS[key]; return (idx>=0&&idx<r.length)?r[idx]:''; };
-  let ownRuc='';
-  for(let i=start;i<rows.length;i++){ const v=String(get(rows[i],'own')||'').trim(); if(isRuc(v)){ ownRuc=v; break; } }
+  let ownRuc='', ownName='', periodo='';
+  for(let i=start;i<rows.length;i++){ const r=rows[i]; const v=String(get(r,'own')||'').trim(); if(isRuc(v)){ ownRuc=v; ownName=String(get(r,'ownName')||'').trim(); periodo=String(get(r,'periodo')||'').trim(); break; } }
   const detail=[]; let totalRows=0; const rucSet=new Set();
   for(let i=start;i<rows.length;i++){ const r=rows[i]; if(!r||!r.length) continue;
     const joined=r.join(' '); if(!RUC_TEST.test(joined)) continue;
@@ -343,22 +384,35 @@ function parseRCE(rows){
       cp:[get(r,'tipoCP'),get(r,'serie'),get(r,'numero')].map(x=>String(x||'').trim()).filter(Boolean).join('-'),
       base:num(get(r,'base')),igv:num(get(r,'igv')),importe:num(get(r,'importe'))||(num(get(r,'base'))+num(get(r,'igv')))});
   }
-  return {detail,totalRows,rucSet,mode,ownRuc};
+  return {detail,totalRows,rucSet,mode,ownRuc,ownName,periodo};
 }
 function cross(){
   const S=state.ssco,R=state.rce; const groups=new Map();
   R.detail.forEach(d=>{ if(S.has(d.ruc)){ if(!groups.has(d.ruc)) groups.set(d.ruc,{ruc:d.ruc,info:S.get(d.ruc),lines:[]}); groups.get(d.ruc).lines.push(d);} });
   return [...groups.values()].sort((a,b)=>b.lines.reduce((s,l)=>s+l.importe,0)-a.lines.reduce((s,l)=>s+l.importe,0));
 }
+const money = n => 'S/ ' + fmtN(n||0);
+function fmtPeriodo(p){ p=String(p||'').trim(); const m=p.match(/^(\d{4})(\d{2})/); if(!m) return p||'—';
+  const mes=['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][+m[2]]||m[2]; return mes+' '+m[1]; }
+function calcImpacts(groups){
+  let tR=0,tI=0,tT=0,tImp=0;
+  groups.forEach(g=>{ g.tImpRenta=0;g.tImpIgv=0;g.tImpTotal=0;g.tImporte=0;
+    g.lines.forEach(l=>{ const noIgv=!(l.igv>0);
+      l.impRenta=(noIgv?l.importe:l.base)*0.295; l.impIgv=l.igv; l.impTotal=l.impRenta+l.impIgv;
+      g.tImpRenta+=l.impRenta; g.tImpIgv+=l.impIgv; g.tImpTotal+=l.impTotal; g.tImporte+=l.importe; });
+    tR+=g.tImpRenta;tI+=g.tImpIgv;tT+=g.tImpTotal;tImp+=g.tImporte; });
+  return {tR,tI,tT,tImp};
+}
 function render(){
   const groups=cross(); const R=state.rce;
+  const tot=calcImpacts(groups);
+  groups.sort((a,b)=>b.tImpTotal-a.tImpTotal);
   const nMatch=groups.length, linesMatch=groups.reduce((s,g)=>s+g.lines.length,0);
-  const montoRiesgo=groups.reduce((s,g)=>s+g.lines.reduce((x,l)=>x+l.importe,0),0);
   const ab=document.getElementById('alertBox');
   if(nMatch>0){
     ab.innerHTML=`<div class="alert bad"><div class="aic">⚠️</div><div>
       <h3>ALERTA · ${nMatch} proveedor${nMatch>1?'es':''} SSCO detectado${nMatch>1?'s':''} en tu Registro de Compras</h3>
-      <p>Se hallaron ${linesMatch} comprobante${linesMatch>1?'s':''} de proveedores calificados como Sujeto Sin Capacidad Operativa. Estas compras podrían no otorgar crédito fiscal ni sustentar costo o gasto. Revisa el detalle a continuación.</p></div></div>`;
+      <p>Se hallaron ${linesMatch} comprobante${linesMatch>1?'s':''} de proveedores calificados como SSCO, con un <b>impacto tributario estimado de ${money(tot.tT)}</b> (crédito fiscal + renta). Estas compras podrían no otorgar crédito fiscal ni sustentar costo o gasto.</p></div></div>`;
   } else {
     ab.innerHTML=`<div class="alert good"><div class="aic">✅</div><div>
       <h3>Sin coincidencias SSCO</h3>
@@ -369,42 +423,105 @@ function render(){
     <div class="kpi"><div class="v">${fmtI(R.rucSet.size)}</div><div class="l">Proveedores únicos</div></div>
     <div class="kpi"><div class="v">${fmtI(state.ssco.size)}</div><div class="l">RUC en padrón SSCO</div></div>
     <div class="kpi ${nMatch>0?'flag':'clean'}"><div class="v">${fmtI(nMatch)}</div><div class="l">Coincidencias SSCO</div></div>
-    <div class="kpi ${nMatch>0?'flag':''}"><div class="v">S/ ${fmtN(montoRiesgo)}</div><div class="l">Importe estimado en riesgo</div></div>`;
+    <div class="kpi ${nMatch>0?'flag':''}"><div class="v" style="font-size:21px">${money(tot.tT)}</div><div class="l">Impacto tributario estimado</div></div>`;
   const ms=document.getElementById('matchSection');
   if(nMatch>0){
     const rows=groups.map(g=>{
-      const monto=g.lines.reduce((s,l)=>s+l.importe,0);
       const razon=g.info.razon||g.lines.find(l=>l.razon)?.razon||'—';
       const detLines=g.lines.map(l=>`<tr><td>${l.fecha||'—'}</td><td>${l.cp||'—'}</td>
-        <td class="num">${l.base?fmtN(l.base):'—'}</td><td class="num">${l.igv?fmtN(l.igv):'—'}</td>
-        <td class="num">${l.importe?fmtN(l.importe):'—'}</td></tr>`).join('');
+        <td class="num">${fmtN(l.base)}</td><td class="num">${fmtN(l.igv)}</td><td class="num">${fmtN(l.importe)}</td>
+        <td class="num">${fmtN(l.impRenta)}</td><td class="num">${fmtN(l.impIgv)}</td><td class="num"><b>${fmtN(l.impTotal)}</b></td></tr>`).join('');
       return `<tr class="match"><td><span class="ruc">${g.ruc}</span> <span class="pill ssco">SSCO</span>
-        ${g.info.detalle?`<div style="font-size:11.5px;color:var(--muted);margin-top:3px">${g.info.detalle}</div>`:''}</td>
+        ${g.info.detalle?`<div style="font-size:11px;color:var(--muted);margin-top:3px">${g.info.detalle}</div>`:''}</td>
         <td>${razon}</td><td class="num">${g.lines.length}</td>
-        <td class="num">S/ ${fmtN(monto)}<details class="detail"><summary>Ver comprobantes</summary>
-          <table><thead><tr><th>Fecha</th><th>Comprobante</th><th class="num">Base</th><th class="num">IGV</th><th class="num">Importe</th></tr></thead>
+        <td class="num">${fmtN(g.tImpRenta)}</td><td class="num">${fmtN(g.tImpIgv)}</td>
+        <td class="num"><b>${money(g.tImpTotal)}</b>
+          <details class="detail"><summary>Ver comprobantes</summary>
+          <table><thead><tr><th>Fecha</th><th>Comprob.</th><th class="num">Base</th><th class="num">IGV</th><th class="num">Total</th><th class="num">Imp. Renta</th><th class="num">Imp. IGV</th><th class="num">Imp. total</th></tr></thead>
           <tbody>${detLines}</tbody></table></details></td></tr>`;
     }).join('');
     ms.innerHTML=`<div class="sec-title">🚩 Proveedores SSCO encontrados</div>
-      <div class="note">El <b>importe estimado</b> se calcula con las columnas detectadas en tu archivo. Verifícalo contra el comprobante y el detalle del SIRE.</div>
-      <div class="toolbar"><button class="sec" onclick="exportXLSX()">⬇️ Descargar reporte (Excel)</button>
-        <button class="sec" onclick="window.print()">🖨️ Imprimir / PDF</button></div>
-      <div class="tablewrap"><table><thead><tr><th>RUC proveedor</th><th>Razón social</th><th class="num">N.° comprob.</th><th class="num">Importe estimado</th></tr></thead>
-      <tbody>${rows}</tbody></table></div>`;
+      <div class="note"><b>Impacto RENTA</b> = base × 29.5% (si el comprobante no tiene IGV, total × 29.5%). <b>Impacto IGV</b> = crédito fiscal del comprobante. Cifras estimadas; valida contra el comprobante y el SIRE.</div>
+      <div class="toolbar"><button class="sec" onclick="exportXLSX()">⬇️ Descargar Excel</button>
+        <button class="sec" onclick="window.print()">📄 Descargar informe (PDF)</button></div>
+      <div class="tablewrap"><table><thead><tr><th>RUC proveedor</th><th>Razón social</th><th class="num">Comp.</th><th class="num">Imp. Renta</th><th class="num">Imp. IGV</th><th class="num">Impacto total</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr><td colspan="3" style="text-align:right;font-weight:700">TOTALES</td><td class="num"><b>${fmtN(tot.tR)}</b></td><td class="num"><b>${fmtN(tot.tI)}</b></td><td class="num"><b>${money(tot.tT)}</b></td></tr></tfoot>
+      </table></div>`;
   } else {
-    ms.innerHTML=`<div class="toolbar"><button class="sec" onclick="window.print()">🖨️ Imprimir / PDF</button></div>`;
+    ms.innerHTML=`<div class="toolbar"><button class="sec" onclick="window.print()">📄 Descargar informe (PDF)</button></div>`;
   }
+  buildPrintReport(groups,tot,nMatch,linesMatch);
   document.getElementById('results').style.display='block';
   document.getElementById('results').scrollIntoView({behavior:'smooth'});
-  window._lastGroups=groups;
+  window._lastGroups=groups; window._lastTot=tot;
 }
-function exportXLSX(){
-  const groups=window._lastGroups||[];
-  const aoa=[['RUC','Razon Social','Detalle padron SSCO','Fecha','Comprobante','Base','IGV','Importe estimado']];
-  groups.forEach(g=>g.lines.forEach(l=>aoa.push([g.ruc,g.info.razon||l.razon||'',g.info.detalle||'',l.fecha||'',l.cp||'',l.base||'',l.igv||'',l.importe||''])));
-  const wb=XLSX.utils.book_new(); const ws=XLSX.utils.aoa_to_sheet(aoa);
-  ws['!cols']=[{wch:14},{wch:40},{wch:34},{wch:12},{wch:18},{wch:12},{wch:12},{wch:14}];
-  XLSX.utils.book_append_sheet(wb,ws,'Coincidencias SSCO'); XLSX.writeFile(wb,'reporte_SSCO_registro_compras.xlsx');
+function buildPrintReport(groups,tot,nMatch,linesMatch){
+  const R=state.rce||{}; const now=new Date();
+  const fechaInf=now.toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+now.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
+  const resumen = nMatch>0
+    ? `<div class="pr-alert bad"><b>ALERTA:</b> ${nMatch} proveedor(es) SSCO · ${linesMatch} comprobante(s) · Impacto tributario estimado <b>${money(tot.tT)}</b> (Renta ${money(tot.tR)} + IGV ${money(tot.tI)}).</div>`
+    : `<div class="pr-alert good"><b>SIN COINCIDENCIAS:</b> ningún proveedor del registro figura en el padrón SSCO cargado.</div>`;
+  const bloques = groups.map((g,i)=>{
+    const razon=g.info.razon||g.lines.find(l=>l.razon)?.razon||'—';
+    const filas=g.lines.map(l=>`<tr><td>${l.fecha||'—'}</td><td>${l.cp||'—'}</td>
+      <td class="num">${fmtN(l.base)}</td><td class="num">${fmtN(l.igv)}</td><td class="num">${fmtN(l.importe)}</td>
+      <td class="num">${fmtN(l.impRenta)}</td><td class="num">${fmtN(l.impIgv)}</td><td class="num">${fmtN(l.impTotal)}</td></tr>`).join('');
+    return `<div class="pr-block"><div class="pr-prov"><b>${i+1}. ${g.ruc}</b> — ${razon} <span class="pr-pill">SSCO</span>
+      ${g.info.detalle?`<div class="pr-det">${g.info.detalle}</div>`:''}</div>
+      <table class="pr-tbl"><thead><tr><th>Fecha</th><th>Comprobante</th><th class="num">Base</th><th class="num">IGV</th><th class="num">Total</th><th class="num">Imp. Renta</th><th class="num">Imp. IGV</th><th class="num">Imp. total</th></tr></thead>
+      <tbody>${filas}</tbody>
+      <tfoot><tr><td colspan="5">Subtotal proveedor</td><td class="num">${fmtN(g.tImpRenta)}</td><td class="num">${fmtN(g.tImpIgv)}</td><td class="num"><b>${fmtN(g.tImpTotal)}</b></td></tr></tfoot></table></div>`;
+  }).join('');
+  const totalTable = nMatch>0? `<table class="pr-tot"><tr><td>Impacto RENTA (base × 29.5%)</td><td class="num">${money(tot.tR)}</td></tr>
+    <tr><td>Impacto IGV (crédito fiscal)</td><td class="num">${money(tot.tI)}</td></tr>
+    <tr class="grand"><td>IMPACTO TRIBUTARIO TOTAL ESTIMADO</td><td class="num">${money(tot.tT)}</td></tr></table>`:'';
+  document.getElementById('printReport').innerHTML=`
+    <div class="pr-head"><div class="pr-logo"><svg viewBox="0 0 240 240"><use href="#agLogo"/></svg></div>
+      <div><div class="pr-title">Informe de Verificación SSCO</div>
+      <div class="pr-sub">Cruce del Registro de Compras (SIRE) contra el padrón de Sujetos Sin Capacidad Operativa — SUNAT</div></div></div>
+    <table class="pr-meta">
+      <tr><td>Contribuyente</td><td>${R.ownRuc?('RUC '+R.ownRuc):'—'}${R.ownName?(' — '+R.ownName):''}</td></tr>
+      <tr><td>Periodo</td><td>${fmtPeriodo(R.periodo)}</td></tr>
+      <tr><td>Comprobantes analizados</td><td>${fmtI(R.totalRows||0)} (${fmtI(R.rucSet?R.rucSet.size:0)} proveedores únicos)</td></tr>
+      <tr><td>Padrón SSCO</td><td>${fmtI(state.ssco?state.ssco.size:0)} RUC${state.fecha?(' · actualizado al '+state.fecha):''}</td></tr>
+      <tr><td>Fecha del informe</td><td>${fechaInf}</td></tr>
+    </table>
+    ${resumen}${bloques}${totalTable}
+    <div class="pr-foot">Elaborado por <b>CPC Alvaro Guillermo Tinco Llave</b> · AG Asesores Contables · Puerto Maldonado – Perú<br>
+    Informe referencial de apoyo al control interno; no es documento oficial de SUNAT. Valida contra el comprobante y el padrón vigente. Marco legal: D. Leg. N.° 1532 y D.S. N.° 319-2023-EF.</div>`;
+}
+function borderAll(){ const s={style:'thin',color:{argb:'FFD9C7D0'}}; return {top:s,left:s,bottom:s,right:s}; }
+async function exportXLSX(){
+  const groups=window._lastGroups||[]; const tot=window._lastTot||{tR:0,tI:0,tT:0}; const R=state.rce||{};
+  if(typeof ExcelJS==='undefined'){ alert('No se pudo cargar el generador de Excel (revisa tu conexión a internet).'); return; }
+  const wb=new ExcelJS.Workbook(); const ws=wb.addWorksheet('Coincidencias SSCO'); const G='FF6D1F3C';
+  ws.mergeCells('A1:K1'); ws.getCell('A1').value='REPORTE DE PROVEEDORES SSCO EN EL REGISTRO DE COMPRAS';
+  ws.getCell('A1').font={bold:true,size:13,color:{argb:G}};
+  ws.mergeCells('A2:K2'); ws.getCell('A2').value=(R.ownRuc?('Contribuyente: RUC '+R.ownRuc+(R.ownName?(' — '+R.ownName):'')):'')+(R.periodo?('     Periodo: '+fmtPeriodo(R.periodo)):'');
+  ws.getCell('A2').font={italic:true,size:10,color:{argb:'FF666666'}};
+  const headerRow=4;
+  const cols=['RUC','Razón social','Resolución SSCO','Fecha','Comprobante','Base','IGV','Total','Impacto Renta (29.5%)','Impacto IGV','Impacto total'];
+  const hrow=ws.getRow(headerRow); cols.forEach((c,i)=>{ const cell=hrow.getCell(i+1); cell.value=c;
+    cell.font={bold:true,color:{argb:'FFFFFFFF'}}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:G}};
+    cell.alignment={horizontal:i<5?'left':'right',vertical:'middle',wrapText:true}; cell.border=borderAll(); });
+  hrow.height=30;
+  let r=headerRow+1;
+  groups.forEach(g=>{ const razon=g.info.razon||'';
+    g.lines.forEach(l=>{ const row=ws.getRow(r++);
+      const vals=[g.ruc,razon,g.info.detalle||'',l.fecha||'',l.cp||'',l.base||0,l.igv||0,l.importe||0,l.impRenta||0,l.impIgv||0,l.impTotal||0];
+      vals.forEach((v,i)=>{ const cell=row.getCell(i+1); cell.value=v; cell.border=borderAll();
+        if(i>=5){ cell.numFmt='#,##0.00'; cell.alignment={horizontal:'right'}; }
+        if(i===0) cell.font={name:'Consolas'}; }); });
+  });
+  const trow=ws.getRow(r); trow.getCell(8).value='TOTALES'; trow.getCell(8).alignment={horizontal:'right'}; trow.getCell(8).font={bold:true};
+  [[9,tot.tR],[10,tot.tI],[11,tot.tT]].forEach(([c,v])=>{ const cell=trow.getCell(c); cell.value=v; cell.numFmt='#,##0.00';
+    cell.font={bold:true}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF4E9EF'}}; cell.alignment={horizontal:'right'}; cell.border=borderAll(); });
+  ws.columns=[{width:14},{width:36},{width:34},{width:12},{width:16},{width:12},{width:11},{width:13},{width:17},{width:13},{width:14}];
+  ws.views=[{state:'frozen',ySplit:headerRow}];
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='reporte_SSCO.xlsx'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500);
 }
 /* ---------- UI ---------- */
 function tag(id,name,count,label){ document.getElementById(id).innerHTML=`<span class="filetag">✓ ${name} · ${fmtI(count)} ${label}</span><button class="clear" data-clr="${id}">quitar</button>`; }
