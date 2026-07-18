@@ -7,14 +7,27 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
-  :root{
-    --page:#e9e3e6; --panel:#ffffff; --ink:#2a2230; --muted:#7c6f78; --line:#e4dbe0;
-    --brand:#6d1f3c; --brand-2:#8a2a52; --brand-soft:#f4e9ef; --brand-line:#e6cdd8; --brand-dark:#4c1327;
+  :root{ /* Suave (predeterminado) — menos blanco */
+    --page:#e2dade; --panel:#f9f4f6; --panel-2:#efe6ec; --ink:#181019; --muted:#4f434c; --line:#ddd0d8;
+    --brand:#6d1f3c; --brand-2:#8a2a52; --brand-soft:#f0e2ea; --brand-line:#e2ccd7; --brand-dark:#4c1327;
     --gold:#c2900f;
-    --danger:#b42318; --danger-soft:#fdecea; --danger-line:#f1a79f;
-    --ok:#067647; --ok-soft:#ecfdf3; --ok-line:#abefc6;
-    --warn:#b54708; --warn-soft:#fff6ec; --warn-line:#fadcae;
-    --radius:14px; --shadow:0 1px 3px rgba(16,24,40,.08),0 1px 2px rgba(16,24,40,.06);
+    --danger:#b42318; --danger-soft:#fbe6e3; --danger-line:#eaa79f;
+    --ok:#067647; --ok-soft:#e7f7ee; --ok-line:#abe0c2;
+    --warn:#b54708; --warn-soft:#fbf1e2; --warn-line:#f0dcb8;
+    --radius:14px; --shadow:0 1px 3px rgba(16,24,40,.06),0 1px 2px rgba(16,24,40,.05);
+  }
+  [data-theme="claro"]{ /* Claro (blanco brillante) */
+    --page:#eef1f5; --panel:#ffffff; --panel-2:#f5f7fb; --ink:#232833; --muted:#647089; --line:#e6e9ef;
+    --brand-soft:#f4e9ef; --brand-line:#e6cdd8;
+    --danger-soft:#fdecea; --danger-line:#f1a79f; --ok-soft:#ecfdf3; --ok-line:#abefc6; --warn-soft:#fff6ec; --warn-line:#fadcae;
+  }
+  [data-theme="oscuro"]{ /* Oscuro (guinda noche) */
+    --page:#1e151b; --panel:#2b2028; --panel-2:#382833; --ink:#eee4ea; --muted:#b6a4ae; --line:#463642;
+    --brand:#7a2547; --brand-2:#9a3a63; --brand-soft:#3a2732; --brand-line:#4c3844; --brand-dark:#521a34;
+    --danger:#ec7367; --danger-soft:#3a201e; --danger-line:#6f342e;
+    --ok:#57bd85; --ok-soft:#18271f; --ok-line:#2f5540;
+    --warn:#e0a55a; --warn-soft:#332512; --warn-line:#5a4526;
+    --shadow:0 1px 3px rgba(0,0,0,.35),0 1px 2px rgba(0,0,0,.3);
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
@@ -23,17 +36,23 @@
   header.top{background:linear-gradient(135deg,var(--brand) 0%,var(--brand-dark) 100%);color:#fff;padding:34px 0 30px;margin-bottom:26px;
              box-shadow:0 4px 20px rgba(76,19,39,.28)}
   header.top .badge{border-bottom:2px solid var(--gold)}
+  .theme-switch{position:absolute;top:2px;right:20px;display:flex;align-items:center;gap:6px;font-size:11.5px;color:rgba(255,255,255,.8);z-index:2}
+  .theme-switch .tlab{opacity:.85}
+  .theme-btn{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff;padding:3px 11px;border-radius:99px;font-size:11.5px;cursor:pointer;font-weight:600;transition:.15s}
+  .theme-btn:hover{background:rgba(255,255,255,.24)}
+  .theme-btn.on{background:var(--gold);border-color:var(--gold);color:#3a2a05}
+  @media(max-width:640px){.theme-switch{position:static;justify-content:flex-end;margin-bottom:10px;color:rgba(255,255,255,.9)}}
   header.top .wrap{padding-bottom:0}
   .badge{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.15);
          border:1px solid rgba(255,255,255,.25);padding:5px 12px;border-radius:999px;font-size:12.5px;font-weight:600;letter-spacing:.3px}
   h1{font-size:26px;margin:14px 0 6px;font-weight:700;letter-spacing:-.3px}
   header.top p{margin:0;opacity:.92;font-size:15px;max-width:730px}
-  .head-flex{display:flex;align-items:center;gap:20px}
-  .brand-logo{flex:0 0 78px;width:78px;height:78px;border-radius:50%;box-shadow:0 3px 14px rgba(0,0,0,.22);line-height:0;background:#fff}
+  .head-flex{display:flex;align-items:center;gap:20px;position:relative;flex-wrap:wrap}
+  .brand-logo{flex:0 0 100px;width:100px;height:100px;border-radius:50%;box-shadow:0 4px 18px rgba(0,0,0,.28);line-height:0;background:#fff}
   .brand-logo svg{width:100%;height:100%;display:block}
-  @media(max-width:640px){.head-flex{gap:14px}.brand-logo{flex-basis:56px;width:56px;height:56px}}
+  @media(max-width:640px){.head-flex{gap:14px}.brand-logo{flex-basis:74px;width:74px;height:74px}}
   .author{display:flex;align-items:center;gap:12px;justify-content:center;text-align:left;margin:18px 0 0;
-          padding:14px 16px;background:#fff;border:1px solid var(--line);border-radius:12px}
+          padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
   .author .alogo{flex:0 0 42px;width:42px;height:42px;line-height:0}
   .author .alogo svg{width:100%;height:100%;display:block}
   .author .atxt{font-size:12.5px;color:var(--muted)}
@@ -46,7 +65,7 @@
   .step-head h2{font-size:17px;margin:0}
   .step-desc{color:var(--muted);font-size:13.5px;margin:2px 0 16px 42px}
   /* estado padrón auto */
-  .ssco-status{margin-left:42px;display:flex;gap:13px;align-items:center;padding:15px 18px;border-radius:12px;border:1px solid var(--line);background:#fafbfc}
+  .ssco-status{margin-left:42px;display:flex;gap:13px;align-items:center;padding:15px 18px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2)}
   .ssco-status .dot{flex:0 0 12px;height:12px;border-radius:50%;background:#cbd5e1;position:relative}
   .ssco-status.loading .dot{background:var(--brand-2);animation:pulse 1.1s infinite}
   .ssco-status.ok{background:var(--ok-soft);border-color:var(--ok-line)}
@@ -60,7 +79,7 @@
   .mini-link{margin:10px 0 0 42px}
   .mini-link a{color:var(--brand-2);font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:none}
   .drop{border:2px dashed #cbd5e1;border-radius:12px;padding:24px 20px;text-align:center;cursor:pointer;
-        transition:.15s;background:#fafbfc;margin-top:12px}
+        transition:.15s;background:var(--panel-2);margin-top:12px}
   .drop:hover{border-color:var(--brand-2);background:var(--brand-soft)}
   .drop.drag{border-color:var(--brand-2);background:var(--brand-soft)}
   .drop.loaded{border-style:solid;border-color:var(--ok-line);background:var(--ok-soft)}
@@ -74,14 +93,14 @@
            border-radius:10px;font-family:'Consolas',monospace;font-size:13px;resize:vertical}
   .altpaste{margin-top:10px}
   .altpaste summary{cursor:pointer;color:var(--brand-2);font-size:13px;font-weight:600;user-select:none}
-  .hint{margin:14px 0 0 42px;font-size:12.5px;color:var(--muted);background:#f8fafc;border:1px solid var(--line);
+  .hint{margin:14px 0 0 42px;font-size:12.5px;color:var(--muted);background:var(--panel-2);border:1px solid var(--line);
         border-radius:9px;padding:11px 13px}
   .hint a{color:var(--brand-2);font-weight:600}
   .cta{text-align:center;margin:6px 0 26px}
   button.go{background:var(--brand);color:#fff;border:none;padding:14px 40px;border-radius:11px;font-size:16px;
             font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(109,31,60,.3);transition:.15s}
   button.go:hover:not(:disabled){background:var(--brand-dark);transform:translateY(-1px)}
-  button.go:disabled{background:#cbd5e1;cursor:not-allowed;box-shadow:none}
+  button.go:disabled{background:var(--line);color:var(--muted);cursor:not-allowed;box-shadow:none}
   #results{display:none}
   .alert{border-radius:var(--radius);padding:22px 24px;margin-bottom:22px;display:flex;gap:16px;align-items:flex-start;box-shadow:var(--shadow)}
   .alert .aic{font-size:30px;line-height:1}
@@ -97,22 +116,22 @@
   .sec-title{font-size:16px;font-weight:700;margin:6px 0 12px;display:flex;align-items:center;gap:9px}
   .tablewrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:22px}
   table{width:100%;border-collapse:collapse;font-size:13.5px}
-  thead th{background:#f8fafc;text-align:left;padding:12px 14px;font-weight:600;color:var(--muted);
+  thead th{background:var(--panel-2);text-align:left;padding:12px 14px;font-weight:600;color:var(--muted);
            border-bottom:1px solid var(--line);white-space:nowrap;font-size:12px;text-transform:uppercase;letter-spacing:.3px}
-  tbody td{padding:12px 14px;border-bottom:1px solid #f1f5f9;vertical-align:top}
+  tbody td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
   tbody tr:last-child td{border-bottom:none}
   tbody tr.match{background:var(--danger-soft)}
   .ruc{font-family:'Consolas',monospace;font-weight:700}
   .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700}
-  .pill.ssco{background:var(--danger);color:#fff}
+  .pill.ssco{background:#b42318;color:#fff}
   .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-bottom:14px}
-  button.sec{background:#fff;border:1px solid var(--line);color:var(--brand);padding:9px 16px;border-radius:9px;font-weight:600;font-size:13.5px;cursor:pointer;transition:.15s}
+  button.sec{background:var(--panel);border:1px solid var(--line);color:var(--brand);padding:9px 16px;border-radius:9px;font-weight:600;font-size:13.5px;cursor:pointer;transition:.15s}
   button.sec:hover{border-color:var(--brand-2);background:var(--brand-soft)}
   .detail{margin-top:6px}
   .detail summary{cursor:pointer;color:var(--brand-2);font-size:12.5px;font-weight:600}
   .detail table{margin-top:8px;font-size:12.5px}
-  .detail thead th{background:#fff;font-size:11px}
+  .detail thead th{background:var(--panel);font-size:11px}
   .note{font-size:12.5px;color:var(--muted);background:var(--warn-soft);border:1px solid var(--warn-line);border-radius:9px;padding:10px 13px;margin-bottom:20px}
   footer{margin-top:34px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
   footer b{color:var(--ink)}
@@ -122,6 +141,18 @@
   .clear{background:none;border:none;color:var(--danger);cursor:pointer;font-size:12px;font-weight:600;margin-left:6px}
   @media(max-width:640px){h1{font-size:22px}.kpi .v{font-size:22px}thead th,tbody td{padding:9px 8px}}
   .tablewrap{overflow-x:auto}
+  #impactBanner:not(:empty){margin-bottom:24px}
+  .gbox{background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;border-radius:var(--radius);padding:20px 26px;
+        box-shadow:0 6px 20px rgba(76,19,39,.3);display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  .gbox .lbl{font-size:12.5px;letter-spacing:.5px;text-transform:uppercase;opacity:.9;font-weight:700}
+  .gbox .val{font-size:38px;font-weight:800;letter-spacing:-1px;margin-top:2px}
+  .gbox .brk{display:flex;gap:26px;border-left:1px solid rgba(255,255,255,.28);padding-left:24px}
+  .gbox .brk span{font-size:12px;opacity:.92}
+  .gbox .brk b{display:block;font-size:19px;font-weight:800;margin-top:3px;color:#f0c14b}
+  @media(max-width:560px){.gbox .val{font-size:30px}.gbox .brk{border-left:none;padding-left:0}}
+  .step-desc,.hint,footer,.ssco-status .s,.note{font-weight:500}
+  footer p{color:var(--ink);opacity:.92}
+  .hint,.step-desc{color:var(--muted)}
   tfoot td{background:var(--brand-soft);border-top:2px solid var(--brand-line);color:var(--brand);padding:11px 14px}
   /* ===== Informe imprimible (PDF) ===== */
   #printReport{display:none}
@@ -177,6 +208,12 @@
 
 <header class="top">
   <div class="wrap head-flex">
+    <div class="theme-switch">
+      <span class="tlab">🎨 Tema:</span>
+      <button class="theme-btn" data-t="suave" onclick="setTheme('suave')">Suave</button>
+      <button class="theme-btn" data-t="claro" onclick="setTheme('claro')">Claro</button>
+      <button class="theme-btn" data-t="oscuro" onclick="setTheme('oscuro')">Oscuro</button>
+    </div>
     <div class="brand-logo"><svg viewBox="0 0 240 240"><use href="#agLogo"/></svg></div>
     <div class="head-txt">
       <span class="badge">🛡️ Cumplimiento tributario · SUNAT</span>
@@ -239,14 +276,14 @@
 
   <div id="results">
     <div id="alertBox"></div>
+    <div id="impactBanner"></div>
     <div class="kpis" id="kpis"></div>
     <div id="matchSection"></div>
   </div>
 
   <footer>
     <p><span class="privacy">🔒 100% privado:</span> ningún archivo se sube a internet. El cruce se realiza localmente en tu navegador.</p>
-    <p style="margin-top:10px"><b>Qué hace:</b> extrae todos los RUC de tu Registro de Compras y los intersecta con los RUC del padrón SSCO. Reporta coincidencias exactas de 11 dígitos, por lo que un falso positivo es prácticamente imposible.</p>
-    <p style="margin-top:10px"><b>Aviso:</b> herramienta independiente de apoyo al control interno; no es un servicio oficial de SUNAT. El importe mostrado es estimado a partir de las columnas detectadas en tu archivo; valida siempre contra el detalle del comprobante y el padrón oficial vigente antes de tomar decisiones tributarias. Marco legal: D. Leg. N.° 1532 y D.S. N.° 319-2023-EF.</p>
+    <p style="margin-top:10px"><b>Aviso:</b> herramienta de apoyo al control interno. El importe mostrado es estimado a partir de las columnas detectadas en tu archivo; valida siempre contra el detalle del comprobante y el padrón oficial vigente antes de tomar decisiones tributarias. Marco legal: D. Leg. N.° 1532 y D.S. N.° 319-2023-EF.</p>
     <div class="author">
       <div class="alogo"><svg viewBox="0 0 240 240"><use href="#agLogo"/></svg></div>
       <div class="atxt">Elaborado por <b>CPC Alvaro Guillermo Tinco Llave</b><br>AG Asesores Contables · Puerto Maldonado – Perú</div>
@@ -418,26 +455,29 @@ function render(){
       <h3>Sin coincidencias SSCO</h3>
       <p>Ninguno de los RUC de tu Registro de Compras figura en el padrón SSCO. Conserva este resultado como respaldo de tu control interno.</p></div></div>`;
   }
+  document.getElementById('impactBanner').innerHTML = nMatch>0 ? `<div class="gbox">
+    <div><div class="lbl">💰 Impacto Tributario Total Estimado</div><div class="val">${money(tot.tT)}</div></div>
+    <div class="brk"><span>Impacto RENTA (29.5%)<b>${money(tot.tR)}</b></span><span>Impacto IGV (crédito fiscal)<b>${money(tot.tI)}</b></span></div>
+  </div>` : '';
   document.getElementById('kpis').innerHTML=`
     <div class="kpi"><div class="v">${fmtI(R.totalRows)}</div><div class="l">Comprobantes analizados</div></div>
     <div class="kpi"><div class="v">${fmtI(R.rucSet.size)}</div><div class="l">Proveedores únicos</div></div>
     <div class="kpi"><div class="v">${fmtI(state.ssco.size)}</div><div class="l">RUC en padrón SSCO</div></div>
-    <div class="kpi ${nMatch>0?'flag':'clean'}"><div class="v">${fmtI(nMatch)}</div><div class="l">Coincidencias SSCO</div></div>
-    <div class="kpi ${nMatch>0?'flag':''}"><div class="v" style="font-size:21px">${money(tot.tT)}</div><div class="l">Impacto tributario estimado</div></div>`;
+    <div class="kpi ${nMatch>0?'flag':'clean'}"><div class="v">${fmtI(nMatch)}</div><div class="l">Coincidencias SSCO</div></div>`;
   const ms=document.getElementById('matchSection');
   if(nMatch>0){
     const rows=groups.map(g=>{
       const razon=g.info.razon||g.lines.find(l=>l.razon)?.razon||'—';
       const detLines=g.lines.map(l=>`<tr><td>${l.fecha||'—'}</td><td>${l.cp||'—'}</td>
         <td class="num">${fmtN(l.base)}</td><td class="num">${fmtN(l.igv)}</td><td class="num">${fmtN(l.importe)}</td>
-        <td class="num">${fmtN(l.impRenta)}</td><td class="num">${fmtN(l.impIgv)}</td><td class="num"><b>${fmtN(l.impTotal)}</b></td></tr>`).join('');
+        <td class="num">${fmtN(l.impRenta)}</td><td class="num">${fmtN(l.impIgv)}</td></tr>`).join('');
       return `<tr class="match"><td><span class="ruc">${g.ruc}</span> <span class="pill ssco">SSCO</span>
         ${g.info.detalle?`<div style="font-size:11px;color:var(--muted);margin-top:3px">${g.info.detalle}</div>`:''}</td>
         <td>${razon}</td><td class="num">${g.lines.length}</td>
         <td class="num">${fmtN(g.tImpRenta)}</td><td class="num">${fmtN(g.tImpIgv)}</td>
         <td class="num"><b>${money(g.tImpTotal)}</b>
           <details class="detail"><summary>Ver comprobantes</summary>
-          <table><thead><tr><th>Fecha</th><th>Comprob.</th><th class="num">Base</th><th class="num">IGV</th><th class="num">Total</th><th class="num">Imp. Renta</th><th class="num">Imp. IGV</th><th class="num">Imp. total</th></tr></thead>
+          <table><thead><tr><th>Fecha</th><th>Comprob.</th><th class="num">Base</th><th class="num">IGV</th><th class="num">Total</th><th class="num">Imp. Renta</th><th class="num">Imp. IGV</th></tr></thead>
           <tbody>${detLines}</tbody></table></details></td></tr>`;
     }).join('');
     ms.innerHTML=`<div class="sec-title">🚩 Proveedores SSCO encontrados</div>
@@ -489,7 +529,7 @@ function buildPrintReport(groups,tot,nMatch,linesMatch){
     </table>
     ${resumen}${bloques}${totalTable}
     <div class="pr-foot">Elaborado por <b>CPC Alvaro Guillermo Tinco Llave</b> · AG Asesores Contables · Puerto Maldonado – Perú<br>
-    Informe referencial de apoyo al control interno; no es documento oficial de SUNAT. Valida contra el comprobante y el padrón vigente. Marco legal: D. Leg. N.° 1532 y D.S. N.° 319-2023-EF.</div>`;
+    Informe referencial de apoyo al control interno. Valida contra el comprobante y el padrón vigente. Marco legal: D. Leg. N.° 1532 y D.S. N.° 319-2023-EF.</div>`;
 }
 function borderAll(){ const s={style:'thin',color:{argb:'FFD9C7D0'}}; return {top:s,left:s,bottom:s,right:s}; }
 async function exportXLSX(){
@@ -579,6 +619,9 @@ document.addEventListener('click',e=>{
     document.getElementById('tagRCE').innerHTML=''; }
   document.getElementById('results').style.display='none'; checkReady();
 });
+function setTheme(t){ document.documentElement.setAttribute('data-theme',t); try{localStorage.setItem('ssco-theme',t);}catch(e){}
+  document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('on', b.dataset.t===t)); }
+(function(){ let t='suave'; try{ t=localStorage.getItem('ssco-theme')||'suave'; }catch(e){} setTheme(t); })();
 autoLoadSSCO();
 </script>
 </body>
