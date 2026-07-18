@@ -1,0 +1,48 @@
+name: Actualizar padrón SSCO
+
+on:
+  schedule:
+    - cron: '0 11 * * *'      # todos los días ~06:00 hora Perú (11:00 UTC)
+  workflow_dispatch:           # permite ejecutarlo manualmente desde la pestaña Actions
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/**'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-ssco
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Descargar y generar padrón (ssco.json)
+        run: node scripts/build_ssco.mjs
+
+      - name: Publicar cambios
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ssco.json
+          if git diff --staged --quiet; then
+            echo "Sin cambios en el padrón."
+          else
+            git commit -m "Actualiza padrón SSCO ($(date -u +%F))"
+            git push
+          fi
