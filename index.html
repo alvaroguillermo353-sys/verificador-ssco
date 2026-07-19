@@ -43,6 +43,19 @@
   header.top p{margin:0;opacity:.92;font-size:15px;max-width:730px}
   .head-author{font-size:14px;color:#fff;opacity:.95;margin:6px 0 10px;font-weight:600}
   .head-author b{color:#f0c14b;font-weight:800}
+  /* ===== Pantalla de acceso ===== */
+  body.locked{overflow:hidden}
+  #authGate{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,var(--brand),var(--brand-dark));display:flex;align-items:center;justify-content:center;padding:20px}
+  .auth-card{background:var(--panel);border-radius:18px;padding:36px 34px;max-width:370px;width:100%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+  .auth-logo{width:88px;height:88px;margin:0 auto 16px}.auth-logo svg{width:100%;height:100%}
+  .auth-card h2{margin:0 0 4px;color:var(--brand);font-size:23px;font-weight:800}
+  .auth-card p{margin:0 0 20px;color:var(--muted);font-size:14px;font-weight:500}
+  #authPass{width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:11px;font-size:15px;margin-bottom:12px;text-align:center;background:var(--panel-2);color:var(--ink)}
+  #authPass:focus{outline:none;border-color:var(--brand-2)}
+  #authBtn{width:100%;background:var(--brand);color:#fff;border:none;padding:13px;border-radius:11px;font-size:15.5px;font-weight:700;cursor:pointer;transition:.15s}
+  #authBtn:hover{background:var(--brand-dark)}
+  .auth-err{color:var(--danger);font-size:13px;font-weight:700;margin-top:10px;min-height:18px}
+  .auth-brand{margin-top:18px;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.5px}
   .head-flex{display:flex;align-items:center;gap:20px;position:relative;flex-wrap:wrap}
   .brand-logo{flex:0 0 100px;width:100px;height:100px;border-radius:50%;box-shadow:0 4px 18px rgba(0,0,0,.28);line-height:0;background:#fff}
   .brand-logo svg{width:100%;height:100%;display:block}
@@ -211,6 +224,18 @@
   <text x="120" y="195" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="14" letter-spacing="4" fill="#16305a">CONTABLES</text>
   <text x="120" y="208" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="7" letter-spacing="0.4"><tspan fill="#e3a92b">•</tspan><tspan fill="#16305a"> CONFIANZA </tspan><tspan fill="#e3a92b">•</tspan><tspan fill="#16305a"> PRECISIÓN </tspan><tspan fill="#e3a92b">•</tspan><tspan fill="#16305a"> RESULTADOS</tspan></text>
 </symbol></svg>
+
+<div id="authGate">
+  <div class="auth-card">
+    <div class="auth-logo"><svg viewBox="0 0 240 240"><use href="#agLogo"/></svg></div>
+    <h2>Verificador SSCO</h2>
+    <p>Ingresa la contraseña para acceder</p>
+    <input type="password" id="authPass" placeholder="Contraseña" autocomplete="off">
+    <button id="authBtn">Ingresar</button>
+    <div id="authErr" class="auth-err"></div>
+    <div class="auth-brand">AG Asesores Contables</div>
+  </div>
+</div>
 
 <header class="top">
   <div class="wrap head-flex">
@@ -633,6 +658,44 @@ document.addEventListener('click',e=>{
     document.getElementById('tagRCE').innerHTML=''; }
   document.getElementById('results').style.display='none'; checkReady();
 });
+/* ===== Control de acceso (contraseña cifrada SHA-256) ===== */
+function sha256(ascii){
+  function rr(v,a){return (v>>>a)|(v<<(32-a));}
+  var mp=Math.pow,mw=mp(2,32),res='';
+  var words=[],bitLen=ascii.length*8;
+  var hash=sha256.h=sha256.h||[],k=sha256.k=sha256.k||[],pc=k.length,comp={};
+  for(var cand=2;pc<64;cand++){ if(!comp[cand]){ for(var i=0;i<313;i+=cand){comp[i]=cand;} hash[pc]=(mp(cand,0.5)*mw)|0; k[pc++]=(mp(cand,1/3)*mw)|0; } }
+  ascii+='\x80'; while(ascii.length%64-56)ascii+='\x00';
+  for(i=0;i<ascii.length;i++){ var j=ascii.charCodeAt(i); if(j>>8)return; words[i>>2]|=j<<((3-i)%4)*8; }
+  words[words.length]=((bitLen/mw)|0); words[words.length]=(bitLen);
+  for(j=0;j<words.length;){
+    var w=words.slice(j,j+=16),oh=hash; hash=hash.slice(0,8);
+    for(i=0;i<64;i++){
+      var w15=w[i-15],w2=w[i-2],a=hash[0],e=hash[4];
+      var t1=hash[7]+(rr(e,6)^rr(e,11)^rr(e,25))+((e&hash[5])^((~e)&hash[6]))+k[i]
+        +(w[i]=i<16?w[i]:(w[i-16]+(rr(w15,7)^rr(w15,18)^(w15>>>3))+w[i-7]+(rr(w2,17)^rr(w2,19)^(w2>>>10)))|0);
+      var t2=(rr(a,2)^rr(a,13)^rr(a,22))+((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+      hash=[(t1+t2)|0].concat(hash); hash[4]=(hash[4]+t1)|0;
+    }
+    for(i=0;i<8;i++){hash[i]=(hash[i]+oh[i])|0;}
+  }
+  for(i=0;i<8;i++){ for(j=3;j+1;j--){ var b=(hash[i]>>(j*8))&255; res+=((b<16)?0:'')+b.toString(16); } }
+  return res;
+}
+(function(){
+  const HASH='a8f412b7560ab1eff7fcad7fc6d0fd7a0e9bb6c5fe5e33d6d0665f05d648b308';
+  const gate=document.getElementById('authGate');
+  const unlock=()=>{ gate.style.display='none'; document.body.classList.remove('locked'); };
+  let ok=false; try{ ok=sessionStorage.getItem('ssco-auth')===HASH; }catch(e){}
+  if(ok){ unlock(); return; }
+  document.body.classList.add('locked');
+  const attempt=()=>{ const v=document.getElementById('authPass').value;
+    if(sha256(v)===HASH){ try{sessionStorage.setItem('ssco-auth',HASH);}catch(e){} unlock(); }
+    else{ document.getElementById('authErr').textContent='Contraseña incorrecta'; const i=document.getElementById('authPass'); i.value=''; i.focus(); } };
+  document.getElementById('authBtn').addEventListener('click',attempt);
+  document.getElementById('authPass').addEventListener('keydown',e=>{ if(e.key==='Enter') attempt(); });
+  document.getElementById('authPass').focus();
+})();
 autoLoadSSCO();
 </script>
 </body>
