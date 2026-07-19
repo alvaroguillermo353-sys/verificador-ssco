@@ -7,14 +7,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
-  :root{ /* Suave (predeterminado) — menos blanco, con recuadros definidos */
-    --page:#d3c8cf; --panel:#fdfbfc; --panel-2:#ede2e9; --ink:#150e14; --muted:#463b44; --line:#c9b7c4;
-    --brand:#6d1f3c; --brand-2:#8a2a52; --brand-soft:#f0e2ea; --brand-line:#dcc2d0; --brand-dark:#4c1327;
+  :root{ /* Azul corporativo — recuadros definidos */
+    --page:#dbe2ec; --panel:#fbfcfe; --panel-2:#e6edf6; --ink:#0f141b; --muted:#3e4959; --line:#c2cfe0;
+    --brand:#1c4e86; --brand-2:#2a67ab; --brand-soft:#e8f0f9; --brand-line:#c5d8ec; --brand-dark:#123457;
     --gold:#c2900f;
-    --danger:#a31910; --danger-soft:#fbe4e1; --danger-line:#e59a90;
+    --danger:#b42318; --danger-soft:#fbe4e1; --danger-line:#e59a90;
     --ok:#066a40; --ok-soft:#e4f6ec; --ok-line:#9fd8b8;
     --warn:#b54708; --warn-soft:#fbf1e2; --warn-line:#f0dcb8;
-    --radius:14px; --shadow:0 2px 8px rgba(76,19,39,.10),0 1px 3px rgba(76,19,39,.08);
+    --radius:14px; --shadow:0 2px 8px rgba(20,50,90,.12),0 1px 3px rgba(20,50,90,.08);
   }
   [data-theme="claro"]{ /* Claro (blanco brillante) */
     --page:#eef1f5; --panel:#ffffff; --panel-2:#f5f7fb; --ink:#232833; --muted:#647089; --line:#e6e9ef;
@@ -34,13 +34,15 @@
        color:var(--ink);background:var(--page);line-height:1.5;-webkit-font-smoothing:antialiased}
   .wrap{max-width:1080px;margin:0 auto;padding:0 20px 80px}
   header.top{background:linear-gradient(135deg,var(--brand) 0%,var(--brand-dark) 100%);color:#fff;padding:34px 0 30px;margin-bottom:26px;
-             box-shadow:0 4px 20px rgba(76,19,39,.28)}
+             box-shadow:0 4px 20px rgba(20,50,90,.28)}
   header.top .badge{border-bottom:2px solid var(--gold)}
   header.top .wrap{padding-bottom:0}
   .badge{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.15);
          border:1px solid rgba(255,255,255,.25);padding:5px 12px;border-radius:999px;font-size:12.5px;font-weight:600;letter-spacing:.3px}
   h1{font-size:26px;margin:14px 0 6px;font-weight:700;letter-spacing:-.3px}
   header.top p{margin:0;opacity:.92;font-size:15px;max-width:730px}
+  .head-author{font-size:14px;color:#fff;opacity:.95;margin:6px 0 10px;font-weight:600}
+  .head-author b{color:#f0c14b;font-weight:800}
   .head-flex{display:flex;align-items:center;gap:20px;position:relative;flex-wrap:wrap}
   .brand-logo{flex:0 0 100px;width:100px;height:100px;border-radius:50%;box-shadow:0 4px 18px rgba(0,0,0,.28);line-height:0;background:#fff}
   .brand-logo svg{width:100%;height:100%;display:block}
@@ -92,7 +94,7 @@
   .hint a{color:var(--brand-2);font-weight:600}
   .cta{text-align:center;margin:6px 0 26px}
   button.go{background:var(--brand);color:#fff;border:none;padding:14px 40px;border-radius:11px;font-size:16px;
-            font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(109,31,60,.3);transition:.15s}
+            font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(20,50,90,.3);transition:.15s}
   button.go:hover:not(:disabled){background:var(--brand-dark);transform:translateY(-1px)}
   button.go:disabled{background:var(--line);color:var(--muted);cursor:not-allowed;box-shadow:none}
   #results{display:none}
@@ -137,7 +139,7 @@
   .tablewrap{overflow-x:auto}
   #impactBanner:not(:empty){margin-bottom:24px}
   .gbox{background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;border-radius:var(--radius);padding:20px 26px;
-        box-shadow:0 6px 20px rgba(76,19,39,.3);display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+        box-shadow:0 6px 20px rgba(20,50,90,.3);display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
   .gbox .lbl{font-size:12.5px;letter-spacing:.5px;text-transform:uppercase;opacity:.9;font-weight:700}
   .gbox .val{font-size:38px;font-weight:800;letter-spacing:-1px;margin-top:2px}
   .gbox .brk{display:flex;gap:26px;border-left:1px solid rgba(255,255,255,.28);padding-left:24px}
@@ -172,8 +174,8 @@
   .pr-title{font-size:19px;font-weight:800;color:var(--brand)}
   .pr-sub{font-size:10.5px;color:#6a5f66}
   .pr-meta{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:11px}
-  .pr-meta td{padding:4px 8px;border:1px solid #e2d8dd}
-  .pr-meta td:first-child{background:#f6eef2;font-weight:700;width:210px;color:var(--brand)}
+  .pr-meta td{padding:4px 8px;border:1px solid #d3ddec}
+  .pr-meta td:first-child{background:#eaf1f9;font-weight:700;width:210px;color:var(--brand)}
   .pr-alert{padding:9px 12px;border-radius:6px;font-size:12px;margin-bottom:14px}
   .pr-alert.bad{background:#fdecea;border:1.5px solid #f1a79f;color:#b42318}
   .pr-alert.good{background:#ecfdf3;border:1.5px solid #abefc6;color:#067647}
@@ -183,13 +185,13 @@
   .pr-det{font-size:9.5px;color:#6a5f66;margin-top:2px}
   .pr-tbl{width:100%;border-collapse:collapse;font-size:10px}
   .pr-tbl th{background:var(--brand);color:#fff;padding:5px 6px;text-align:left;font-size:9px}
-  .pr-tbl td{padding:4px 6px;border:1px solid #e6dbe0}
+  .pr-tbl td{padding:4px 6px;border:1px solid #d3ddec}
   .pr-tbl .num{text-align:right}
-  .pr-tbl tfoot td{background:#f6eef2;font-weight:700}
+  .pr-tbl tfoot td{background:#eaf1f9;font-weight:700}
   .pr-tot{margin:14px 0 0 auto;border-collapse:collapse;min-width:320px;font-size:12px}
-  .pr-tot td{padding:6px 12px;border:1px solid #e2d8dd}.pr-tot td.num{text-align:right;font-weight:700}
+  .pr-tot td{padding:6px 12px;border:1px solid #d3ddec}.pr-tot td.num{text-align:right;font-weight:700}
   .pr-tot .grand td{background:var(--brand);color:#fff;font-size:13px}
-  .pr-foot{margin-top:16px;padding-top:8px;border-top:1px solid #e2d8dd;font-size:9px;color:#6a5f66;line-height:1.5}
+  .pr-foot{margin-top:16px;padding-top:8px;border-top:1px solid #d3ddec;font-size:9px;color:#6a5f66;line-height:1.5}
 </style>
 </head>
 <body>
@@ -216,6 +218,7 @@
     <div class="head-txt">
       <span class="badge">🛡️ Cumplimiento tributario · SUNAT</span>
       <h1>Verificador SSCO</h1>
+      <div class="head-author">Elaborado por <b>CPC Alvaro Guillermo Tinco Llave</b> · AG Asesores Contables</div>
       <p>Cruza tu <b>Registro de Compras (SIRE / RCE)</b> contra el padrón de <b>Sujetos Sin Capacidad Operativa</b> de SUNAT y detecta al instante si algún proveedor calificado como SSCO está en tus compras. El padrón se actualiza solo; todo el procesamiento ocurre en tu navegador.</p>
     </div>
   </div>
@@ -542,11 +545,11 @@ function buildPrintReport(groups,tot,nMatch,linesMatch){
     <div class="pr-foot">Elaborado por <b>CPC Alvaro Guillermo Tinco Llave</b> · AG Asesores Contables · Puerto Maldonado – Perú<br>
     Informe referencial de apoyo al control interno. Valida contra el comprobante y el padrón vigente. Marco legal: D. Leg. N.° 1532 y D.S. N.° 319-2023-EF.</div>`;
 }
-function borderAll(){ const s={style:'thin',color:{argb:'FFD9C7D0'}}; return {top:s,left:s,bottom:s,right:s}; }
+function borderAll(){ const s={style:'thin',color:{argb:'FFC5D8EC'}}; return {top:s,left:s,bottom:s,right:s}; }
 async function exportXLSX(){
   const groups=window._lastGroups||[]; const tot=window._lastTot||{tR:0,tI:0,tT:0}; const R=state.rce||{};
   if(typeof ExcelJS==='undefined'){ alert('No se pudo cargar el generador de Excel (revisa tu conexión a internet).'); return; }
-  const wb=new ExcelJS.Workbook(); const ws=wb.addWorksheet('Coincidencias SSCO'); const G='FF6D1F3C';
+  const wb=new ExcelJS.Workbook(); const ws=wb.addWorksheet('Coincidencias SSCO'); const G='FF1C4E86';
   ws.mergeCells('A1:L1'); ws.getCell('A1').value='REPORTE DE PROVEEDORES SSCO EN EL REGISTRO DE COMPRAS';
   ws.getCell('A1').font={bold:true,size:13,color:{argb:G}};
   ws.mergeCells('A2:L2'); ws.getCell('A2').value=(R.ownRuc?('Contribuyente: RUC '+R.ownRuc+(R.ownName?(' — '+R.ownName):'')):'')+(R.periodo?('     Periodo: '+fmtPeriodo(R.periodo)):'');
@@ -567,7 +570,7 @@ async function exportXLSX(){
   });
   const trow=ws.getRow(r); trow.getCell(8).value='TOTALES'; trow.getCell(8).alignment={horizontal:'right'}; trow.getCell(8).font={bold:true};
   [[9,tot.tR],[10,tot.tI],[11,tot.tT]].forEach(([c,v])=>{ const cell=trow.getCell(c); cell.value=v; cell.numFmt='#,##0.00';
-    cell.font={bold:true}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF4E9EF'}}; cell.alignment={horizontal:'right'}; cell.border=borderAll(); });
+    cell.font={bold:true}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE8F0F9'}}; cell.alignment={horizontal:'right'}; cell.border=borderAll(); });
   ws.columns=[{width:14},{width:36},{width:34},{width:12},{width:16},{width:12},{width:11},{width:13},{width:17},{width:13},{width:14},{width:34}];
   ws.views=[{state:'frozen',ySplit:headerRow}];
   const buf=await wb.xlsx.writeBuffer();
