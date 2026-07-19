@@ -29,12 +29,14 @@ function fmtDate(v){
 }
 function parseSSCO(rows){
   const map=new Map(); const hr=findHeaderRow(rows);
-  let rucC=-1,nomC=-1,resC=-1,fecC=-1,start=0;
+  let rucC=-1,nomC=-1,resC=-1,fecC=-1,repNomC=-1,repDocC=-1,start=0;
   if(hr>=0){ const H=rows[hr];
     rucC=colIndex(H,[/^RUC$/,/^RUC\b/,/^RUC/,/N.*DOC/,/IDENTIDAD/]);   // 1ra col RUC = el SSCO
     nomC=colIndex(H,[/RAZON/,/NOMBRE/,/DENOMINAC/]);
     resC=colIndex(H,[/RESOLUC/,/CALIFIC/]);
     fecC=colIndex(H,[/PUBLICAC/]); if(fecC<0) fecC=colIndex(H,[/FECHA/,/VIGENC/]);   // prioriza fecha de publicación
+    repNomC=colIndex(H,[/(APELLIDO|NOMBRE).*REPRESENT/,/REPRESENT.*(APELLIDO|NOMBRE)/]); // representante legal (nombre)
+    repDocC=colIndex(H,[/REPRESENT.*(RUC|DOC|IDENT)/,/(RUC|DOC|IDENT).*REPRESENT/]);      // representante legal (doc)
     start=hr+1; }
   for(let i=start;i<rows.length;i++){ const r=rows[i]; if(!r) continue;
     let ruc=null,razon='';
@@ -44,7 +46,10 @@ function parseSSCO(rows){
     if(ruc && /^(10|15|16|17|20)\d{9}$/.test(ruc)){
       const det=[]; if(resC>=0&&r[resC])det.push('Resolución: '+String(r[resC]).trim());
       if(fecC>=0&&r[fecC])det.push('Publicación: '+fmtDate(r[fecC]));
-      if(!map.has(ruc)) map.set(ruc,{razon,detalle:det.join(' · ')});
+      const o={razon,detalle:det.join(' · ')};
+      if(repNomC>=0 && r[repNomC]) o.rep=String(r[repNomC]).trim();
+      if(repDocC>=0 && r[repDocC]) o.repDoc=String(r[repDocC]).trim();
+      if(!map.has(ruc)) map.set(ruc,o);
       else if(!map.get(ruc).razon&&razon) map.get(ruc).razon=razon;
     }
   }
