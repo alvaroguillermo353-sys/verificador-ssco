@@ -7,14 +7,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
-  :root{ /* Suave (predeterminado) — menos blanco */
-    --page:#e2dade; --panel:#f9f4f6; --panel-2:#efe6ec; --ink:#181019; --muted:#4f434c; --line:#ddd0d8;
-    --brand:#6d1f3c; --brand-2:#8a2a52; --brand-soft:#f0e2ea; --brand-line:#e2ccd7; --brand-dark:#4c1327;
+  :root{ /* Suave (predeterminado) — menos blanco, con recuadros definidos */
+    --page:#d3c8cf; --panel:#fdfbfc; --panel-2:#ede2e9; --ink:#150e14; --muted:#463b44; --line:#c9b7c4;
+    --brand:#6d1f3c; --brand-2:#8a2a52; --brand-soft:#f0e2ea; --brand-line:#dcc2d0; --brand-dark:#4c1327;
     --gold:#c2900f;
-    --danger:#b42318; --danger-soft:#fbe6e3; --danger-line:#eaa79f;
-    --ok:#067647; --ok-soft:#e7f7ee; --ok-line:#abe0c2;
+    --danger:#a31910; --danger-soft:#fbe4e1; --danger-line:#e59a90;
+    --ok:#066a40; --ok-soft:#e4f6ec; --ok-line:#9fd8b8;
     --warn:#b54708; --warn-soft:#fbf1e2; --warn-line:#f0dcb8;
-    --radius:14px; --shadow:0 1px 3px rgba(16,24,40,.06),0 1px 2px rgba(16,24,40,.05);
+    --radius:14px; --shadow:0 2px 8px rgba(76,19,39,.10),0 1px 3px rgba(76,19,39,.08);
   }
   [data-theme="claro"]{ /* Claro (blanco brillante) */
     --page:#eef1f5; --panel:#ffffff; --panel-2:#f5f7fb; --ink:#232833; --muted:#647089; --line:#e6e9ef;
@@ -36,12 +36,6 @@
   header.top{background:linear-gradient(135deg,var(--brand) 0%,var(--brand-dark) 100%);color:#fff;padding:34px 0 30px;margin-bottom:26px;
              box-shadow:0 4px 20px rgba(76,19,39,.28)}
   header.top .badge{border-bottom:2px solid var(--gold)}
-  .theme-switch{position:absolute;top:2px;right:20px;display:flex;align-items:center;gap:6px;font-size:11.5px;color:rgba(255,255,255,.8);z-index:2}
-  .theme-switch .tlab{opacity:.85}
-  .theme-btn{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff;padding:3px 11px;border-radius:99px;font-size:11.5px;cursor:pointer;font-weight:600;transition:.15s}
-  .theme-btn:hover{background:rgba(255,255,255,.24)}
-  .theme-btn.on{background:var(--gold);border-color:var(--gold);color:#3a2a05}
-  @media(max-width:640px){.theme-switch{position:static;justify-content:flex-end;margin-bottom:10px;color:rgba(255,255,255,.9)}}
   header.top .wrap{padding-bottom:0}
   .badge{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.15);
          border:1px solid rgba(255,255,255,.25);padding:5px 12px;border-radius:999px;font-size:12.5px;font-weight:600;letter-spacing:.3px}
@@ -150,6 +144,16 @@
   .gbox .brk span{font-size:12px;opacity:.92}
   .gbox .brk b{display:block;font-size:19px;font-weight:800;margin-top:3px;color:#f0c14b}
   @media(max-width:560px){.gbox .val{font-size:30px}.gbox .brk{border-left:none;padding-left:0}}
+  .matchtbl{table-layout:auto}
+  .matchtbl thead th{color:var(--ink)}
+  .resol{font-size:10.5px;color:var(--muted);margin-top:3px;font-weight:500}
+  .verlink{color:var(--brand-2);font-size:12px;font-weight:700;cursor:pointer;display:inline-block;margin-top:6px;white-space:nowrap;user-select:none}
+  .verlink:hover{text-decoration:underline}
+  .detrow > td{background:var(--danger-soft);padding:4px 14px 14px !important;border-bottom:1px solid var(--line)}
+  .subtbl{width:100%;border-collapse:collapse;font-size:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .subtbl thead th{background:var(--brand);color:#fff;padding:7px 10px;font-size:10.5px;text-transform:none;letter-spacing:0;border:none}
+  .subtbl td{padding:6px 10px;border-bottom:1px solid var(--line)}
+  .subtbl tbody tr:last-child td{border-bottom:none}
   .step-desc,.hint,footer,.ssco-status .s,.note{font-weight:500}
   footer p{color:var(--ink);opacity:.92}
   .hint,.step-desc{color:var(--muted)}
@@ -208,12 +212,6 @@
 
 <header class="top">
   <div class="wrap head-flex">
-    <div class="theme-switch">
-      <span class="tlab">🎨 Tema:</span>
-      <button class="theme-btn" data-t="suave" onclick="setTheme('suave')">Suave</button>
-      <button class="theme-btn" data-t="claro" onclick="setTheme('claro')">Claro</button>
-      <button class="theme-btn" data-t="oscuro" onclick="setTheme('oscuro')">Oscuro</button>
-    </div>
     <div class="brand-logo"><svg viewBox="0 0 240 240"><use href="#agLogo"/></svg></div>
     <div class="head-txt">
       <span class="badge">🛡️ Cumplimiento tributario · SUNAT</span>
@@ -440,6 +438,11 @@ function calcImpacts(groups){
     tR+=g.tImpRenta;tI+=g.tImpIgv;tT+=g.tImpTotal;tImp+=g.tImporte; });
   return {tR,tI,tT,tImp};
 }
+function toggleDet(el){
+  const tr=el.closest('tr').nextElementSibling;
+  if(tr && tr.classList.contains('detrow')){ const show=tr.style.display==='none';
+    tr.style.display=show?'table-row':'none'; el.textContent=(show?'▴ Ocultar comprobantes':'▾ Ver comprobantes'); }
+}
 function render(){
   const groups=cross(); const R=state.rce;
   const tot=calcImpacts(groups);
@@ -469,22 +472,21 @@ function render(){
     const rows=groups.map(g=>{
       const razon=g.info.razon||g.lines.find(l=>l.razon)?.razon||'—';
       const detLines=g.lines.map(l=>`<tr><td>${l.fecha||'—'}</td><td>${l.cp||'—'}</td>
-        <td class="num">${fmtN(l.base)}</td><td class="num">${fmtN(l.igv)}</td><td class="num">${fmtN(l.importe)}</td>
-        <td class="num">${fmtN(l.impRenta)}</td><td class="num">${fmtN(l.impIgv)}</td></tr>`).join('');
+        <td class="num">${fmtN(l.base)}</td><td class="num">${fmtN(l.igv)}</td><td class="num">${fmtN(l.importe)}</td></tr>`).join('');
       return `<tr class="match"><td><span class="ruc">${g.ruc}</span> <span class="pill ssco">SSCO</span>
-        ${g.info.detalle?`<div style="font-size:11px;color:var(--muted);margin-top:3px">${g.info.detalle}</div>`:''}</td>
+        ${g.info.detalle?`<div class="resol">${g.info.detalle}</div>`:''}</td>
         <td>${razon}</td><td class="num">${g.lines.length}</td>
         <td class="num">${fmtN(g.tImpRenta)}</td><td class="num">${fmtN(g.tImpIgv)}</td>
-        <td class="num"><b>${money(g.tImpTotal)}</b>
-          <details class="detail"><summary>Ver comprobantes</summary>
-          <table><thead><tr><th>Fecha</th><th>Comprob.</th><th class="num">Base</th><th class="num">IGV</th><th class="num">Total</th><th class="num">Imp. Renta</th><th class="num">Imp. IGV</th></tr></thead>
-          <tbody>${detLines}</tbody></table></details></td></tr>`;
+        <td class="num"><b>${money(g.tImpTotal)}</b><br><a class="verlink" onclick="toggleDet(this)">▾ Ver comprobantes</a></td></tr>
+        <tr class="detrow" style="display:none"><td colspan="6">
+          <table class="subtbl"><thead><tr><th>Fecha</th><th>Comprobante</th><th class="num">Base</th><th class="num">IGV</th><th class="num">Total</th></tr></thead>
+          <tbody>${detLines}</tbody></table></td></tr>`;
     }).join('');
     ms.innerHTML=`<div class="sec-title">🚩 Proveedores SSCO encontrados</div>
       <div class="note"><b>Impacto RENTA</b> = base × 29.5% (si el comprobante no tiene IGV, total × 29.5%). <b>Impacto IGV</b> = crédito fiscal del comprobante. Cifras estimadas; valida contra el comprobante y el SIRE.</div>
       <div class="toolbar"><button class="sec" onclick="exportXLSX()">⬇️ Descargar Excel</button>
         <button class="sec" onclick="window.print()">📄 Descargar informe (PDF)</button></div>
-      <div class="tablewrap"><table><thead><tr><th>RUC proveedor</th><th>Razón social</th><th class="num">Comp.</th><th class="num">Imp. Renta</th><th class="num">Imp. IGV</th><th class="num">Impacto total</th></tr></thead>
+      <div class="tablewrap"><table class="matchtbl"><thead><tr><th>RUC proveedor</th><th>Razón social</th><th class="num">Comp.</th><th class="num">Imp. Renta</th><th class="num">Imp. IGV</th><th class="num">Impacto total</th></tr></thead>
       <tbody>${rows}</tbody>
       <tfoot><tr><td colspan="3" style="text-align:right;font-weight:700">TOTALES</td><td class="num"><b>${fmtN(tot.tR)}</b></td><td class="num"><b>${fmtN(tot.tI)}</b></td><td class="num"><b>${money(tot.tT)}</b></td></tr></tfoot>
       </table></div>`;
@@ -619,9 +621,6 @@ document.addEventListener('click',e=>{
     document.getElementById('tagRCE').innerHTML=''; }
   document.getElementById('results').style.display='none'; checkReady();
 });
-function setTheme(t){ document.documentElement.setAttribute('data-theme',t); try{localStorage.setItem('ssco-theme',t);}catch(e){}
-  document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('on', b.dataset.t===t)); }
-(function(){ let t='suave'; try{ t=localStorage.getItem('ssco-theme')||'suave'; }catch(e){} setTheme(t); })();
 autoLoadSSCO();
 </script>
 </body>
