@@ -23,14 +23,21 @@ function colIndex(header,patterns){
   for(let c=0;c<header.length;c++){ const h=norm(header[c]); if(patterns.some(p=>p.test(h))) return c; }
   return -1;
 }
+function fmtDate(v){
+  if(v instanceof Date && !isNaN(v)){ const d=String(v.getUTCDate()).padStart(2,'0'), m=String(v.getUTCMonth()+1).padStart(2,'0'); return d+'/'+m+'/'+v.getUTCFullYear(); }
+  const s=String(v==null?'':v).trim(); const mm=s.match(/(\d{4})-(\d{2})-(\d{2})/); if(mm) return mm[3]+'/'+mm[2]+'/'+mm[1]; return s.slice(0,10);
+}
 function parseSSCO(rows){
   const map=new Map(); const hr=findHeaderRow(rows);
-  let rucC=-1,nomC=-1,resC=-1,fecC=-1,start=0;
+  let rucC=-1,nomC=-1,resC=-1,fecC=-1,repNomC=-1,repDocC=-1,start=0;
   if(hr>=0){ const H=rows[hr];
-    rucC=colIndex(H,[/^RUC/,/N.*DOC/,/DOCUMENTO/,/IDENTIDAD/]);
-    nomC=colIndex(H,[/RAZON/,/NOMBRE/,/APELLIDO/,/CONTRIBUYENTE/,/DENOMINAC/]);
-    resC=colIndex(H,[/RESOLUC/,/CALIFIC/,/R\.?S/]);
-    fecC=colIndex(H,[/FECHA/,/PUBLICAC/,/VIGENC/]); start=hr+1; }
+    rucC=colIndex(H,[/^RUC$/,/^RUC\b/,/^RUC/,/N.*DOC/,/IDENTIDAD/]);   // 1ra col RUC = el SSCO
+    nomC=colIndex(H,[/RAZON/,/NOMBRE/,/DENOMINAC/]);
+    resC=colIndex(H,[/RESOLUC/,/CALIFIC/]);
+    fecC=colIndex(H,[/PUBLICAC/]); if(fecC<0) fecC=colIndex(H,[/FECHA/,/VIGENC/]);   // prioriza fecha de publicación
+    repNomC=colIndex(H,[/(APELLIDO|NOMBRE).*REPRESENT/,/REPRESENT.*(APELLIDO|NOMBRE)/]); // representante legal (nombre)
+    repDocC=colIndex(H,[/REPRESENT.*(RUC|DOC|IDENT)/,/(RUC|DOC|IDENT).*REPRESENT/]);      // representante legal (doc)
+    start=hr+1; }
   for(let i=start;i<rows.length;i++){ const r=rows[i]; if(!r) continue;
     let ruc=null,razon='';
     if(rucC>=0 && /^\d{11}$/.test(String(r[rucC]||'').trim())){ ruc=String(r[rucC]).trim(); razon=nomC>=0?String(r[nomC]||'').trim():''; }
@@ -38,8 +45,11 @@ function parseSSCO(rows){
       razon=r.map(x=>String(x||'').trim()).filter(x=>x!==ruc && !/^\d+$/.test(x)).sort((a,b)=>b.length-a.length)[0]||''; } }
     if(ruc && /^(10|15|16|17|20)\d{9}$/.test(ruc)){
       const det=[]; if(resC>=0&&r[resC])det.push('Resolución: '+String(r[resC]).trim());
-      if(fecC>=0&&r[fecC])det.push('Publicación: '+String(r[fecC]).trim());
-      if(!map.has(ruc)) map.set(ruc,{razon,detalle:det.join(' · ')});
+      if(fecC>=0&&r[fecC])det.push('Publicación: '+fmtDate(r[fecC]));
+      const o={razon,detalle:det.join(' · ')};
+      if(repNomC>=0 && r[repNomC]) o.rep=String(r[repNomC]).trim();
+      if(repDocC>=0 && r[repDocC]) o.repDoc=String(r[repDocC]).trim();
+      if(!map.has(ruc)) map.set(ruc,o);
       else if(!map.get(ruc).razon&&razon) map.get(ruc).razon=razon;
     }
   }
@@ -53,9 +63,9 @@ async function main(){
   if(!res.ok) throw new Error('Descarga falló: HTTP '+res.status);
   const buf = Buffer.from(await res.arrayBuffer());
   console.log('Descargado:', buf.length, 'bytes');
-  const wb = XLSX.read(buf,{type:'buffer'});
+  const wb = XLSX.read(buf,{type:'buffer',cellDates:true});
   const ws = wb.Sheets[wb.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''});
+  const rows = XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
   const map = parseSSCO(rows);
   if(map.size===0) throw new Error('El padrón se descargó pero no se hallaron RUC válidos (¿cambió el formato?).');
   const out = {
