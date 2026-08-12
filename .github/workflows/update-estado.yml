@@ -1,0 +1,44 @@
+name: Actualizar padrón de estados del RUC
+
+on:
+  schedule:
+    - cron: '30 11 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/build_estado.mjs'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-estado
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Descargar padrón reducido y generar estado (estado.txt.gz)
+        run: node scripts/build_estado.mjs
+
+      - name: Publicar cambios
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add estado.txt.gz estado.meta.json
+          if git diff --staged --quiet; then
+            echo "Sin cambios en el padrón de estados."
+          else
+            git commit -m "Actualiza padrón de estados del RUC ($(date -u +%F))"
+            git push
+          fi
