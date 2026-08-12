@@ -705,14 +705,17 @@ function render(){
         <td class="num">${fmtN(g.tImpRenta)}</td><td class="num">${fmtN(g.tImpIgv)}</td>
         <td class="num"><b>${money(g.tImpTotal)}</b><br><a class="verlink" onclick="toggleDet(this)">▾ Ver comprobantes</a></td></tr>
         <tr class="detrow" style="display:none"><td colspan="7">
-          <table class="subtbl"><thead><tr><th>Fecha</th><th>Comprobante</th><th class="num">Base</th><th class="num">IGV</th><th class="num">Total</th><th>Situación *</th></tr></thead>
+          <table class="subtbl"><thead><tr><th>Fecha</th><th>Comprobante</th><th class="num">Base</th><th class="num">IGV</th><th class="num">Total</th><th>Situación</th></tr></thead>
           <tbody>${detLines}</tbody></table></td></tr>`;
     }).join('');
     const maxImp=Math.max.apply(null,groups.map(g=>g.tImpTotal).concat([1]));
     const chart=groups.slice(0,8).map(g=>{ const w=Math.max(2,Math.round(g.tImpTotal/maxImp*100));
       return `<div class="bar-row"><div class="bar-lbl" title="${g.ruc}">${g.ruc}</div><div class="bar-track"><div class="bar-fill" style="width:${w}%"></div></div><div class="bar-val">${money(g.tImpTotal)}</div></div>`; }).join('');
     ms.innerHTML=`${noEstadoNote}<div class="sec-title">🚩 Proveedores observados encontrados</div>
-      <div class="note"><b>Condición</b>: <span class="pill ssco">SSCO</span> sujeto sin capacidad operativa · <span class="pill nohab">NO HABIDO</span> domicilio no habido · <span class="pill baja">DE BAJA / SUSPENDIDO</span> estado distinto de ACTIVO. <b>Impacto RENTA</b> = base × 29.5% (si no hay IGV, total × 29.5%). <b>Impacto IGV</b> = crédito fiscal del comprobante. <b>Situación *</b>: compara la fecha del comprobante con la fecha de publicación SSCO (una compra <i>posterior</i> suele ser de mayor riesgo). Cifras estimadas; valida contra el comprobante y el SIRE.</div>
+      <div class="note"><b>Columna “Condición”</b> — por qué se observa al proveedor: <span class="pill ssco">SSCO</span> sin capacidad operativa · <span class="pill nohab">NO HABIDO</span> domicilio no habido · <span class="pill baja">DE BAJA / SUSPENDIDO</span> ya no está ACTIVO. Un proveedor puede ser <b>SSCO y, a la vez, seguir ACTIVO y HABIDO</b> en SUNAT: son calificaciones distintas e independientes.<br>
+      <b>Impacto Renta / Impacto IGV</b> = el monto que estarías en riesgo de perder (gasto al 29.5% y crédito fiscal del IGV) si SUNAT repara estas compras.<br>
+      <b>Columna “Situación”</b> — solo aplica a los SSCO, compara la fecha de tu compra con la fecha en que SUNAT publicó la calificación: <span class="tag post">Posterior</span> = compraste <b>después</b> de que ya era SSCO (mayor riesgo) · <span class="tag ante">Anterior</span> = compraste <b>antes</b>.<br>
+      <span style="color:var(--muted)">Cifras estimadas; valida siempre contra el comprobante y el SIRE.</span></div>
       <div class="toolbar"><button class="sec" onclick="exportXLSX()">⬇️ Descargar Excel</button>
         <button class="sec" onclick="window.print()">📄 Descargar informe (PDF)</button></div>
       <div class="tablewrap"><table class="matchtbl"><thead><tr><th>RUC proveedor</th><th>Razón social</th><th>Condición</th><th class="num">Comp.</th><th class="num">Imp. Renta</th><th class="num">Imp. IGV</th><th class="num">Impacto total</th></tr></thead>
