@@ -181,6 +181,13 @@
   .pill.nohab{background:#c2410c;color:#fff}
   .pill.baja{background:#475569;color:#fff}
   .pill+.pill{margin-left:4px}
+  .legend{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;margin-bottom:16px}
+  .legend summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--brand);padding:11px 15px;user-select:none;list-style:none}
+  .legend summary::-webkit-details-marker{display:none}
+  .legend summary::before{content:'▸ ';font-size:11px}
+  .legend[open] summary::before{content:'▾ '}
+  .legend-body{padding:2px 15px 13px;font-size:12.5px;color:var(--muted);line-height:1.7}
+  .legend-body .pill,.legend-body .tag{vertical-align:middle}
   .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-bottom:14px}
   button.sec{background:var(--panel);border:1px solid var(--line);color:var(--brand);padding:9px 16px;border-radius:9px;font-weight:600;font-size:13.5px;cursor:pointer;transition:.15s}
@@ -712,10 +719,10 @@ function render(){
     const chart=groups.slice(0,8).map(g=>{ const w=Math.max(2,Math.round(g.tImpTotal/maxImp*100));
       return `<div class="bar-row"><div class="bar-lbl" title="${g.ruc}">${g.ruc}</div><div class="bar-track"><div class="bar-fill" style="width:${w}%"></div></div><div class="bar-val">${money(g.tImpTotal)}</div></div>`; }).join('');
     ms.innerHTML=`${noEstadoNote}<div class="sec-title">🚩 Proveedores observados encontrados</div>
-      <div class="note"><b>Columna “Condición”</b> — por qué se observa al proveedor: <span class="pill ssco">SSCO</span> sin capacidad operativa · <span class="pill nohab">NO HABIDO</span> domicilio no habido · <span class="pill baja">DE BAJA / SUSPENDIDO</span> ya no está ACTIVO. Un proveedor puede ser <b>SSCO y, a la vez, seguir ACTIVO y HABIDO</b> en SUNAT: son calificaciones distintas e independientes.<br>
-      <b>Impacto Renta / Impacto IGV</b> = el monto que estarías en riesgo de perder (gasto al 29.5% y crédito fiscal del IGV) si SUNAT repara estas compras.<br>
-      <b>Columna “Situación”</b> — solo aplica a los SSCO, compara la fecha de tu compra con la fecha en que SUNAT publicó la calificación: <span class="tag post">Posterior</span> = compraste <b>después</b> de que ya era SSCO (mayor riesgo) · <span class="tag ante">Anterior</span> = compraste <b>antes</b>.<br>
-      <span style="color:var(--muted)">Cifras estimadas; valida siempre contra el comprobante y el SIRE.</span></div>
+      <details class="legend"><summary>ℹ️ ¿Cómo leer esta tabla?</summary>
+      <div class="legend-body"><b>Condición</b> (motivo de la observación): <span class="pill ssco">SSCO</span> sin capacidad operativa · <span class="pill nohab">NO HABIDO</span> domicilio no habido · <span class="pill baja">DE BAJA / SUSPENDIDO</span> estado ya no ACTIVO. <i>Un proveedor puede ser SSCO y a la vez seguir ACTIVO y HABIDO: son calificaciones distintas.</i><br>
+      <b>Situación</b> (solo SSCO): <span class="tag post">Posterior</span> = compraste después de la calificación (mayor riesgo) · <span class="tag ante">Anterior</span> = compraste antes.<br>
+      Cifras estimadas; valida contra el comprobante y el SIRE.</div></details>
       <div class="toolbar"><button class="sec" onclick="exportXLSX()">⬇️ Descargar Excel</button>
         <button class="sec" onclick="window.print()">📄 Descargar informe (PDF)</button></div>
       <div class="tablewrap"><table class="matchtbl"><thead><tr><th>RUC proveedor</th><th>Razón social</th><th>Condición</th><th class="num">Comp.</th><th class="num">Imp. Renta</th><th class="num">Imp. IGV</th><th class="num">Impacto total</th></tr></thead>
