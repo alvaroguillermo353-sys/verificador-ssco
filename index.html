@@ -8,9 +8,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
   :root{ /* Azul corporativo — recuadros definidos */
-    --page:#dbe2ec; --panel:#fbfcfe; --panel-2:#e6edf6; --ink:#0f141b; --muted:#3e4959; --line:#c2cfe0;
-    --brand:#1c4e86; --brand-2:#2a67ab; --brand-soft:#e8f0f9; --brand-line:#c5d8ec; --brand-dark:#123457;
-    --gold:#c2900f;
+    --page:#eef1f6; --panel:#ffffff; --panel-2:#eef2f8; --ink:#14202e; --muted:#47566a; --line:#d3dced;
+    --brand:#16305a; --brand-2:#2c5896; --brand-soft:#e9eff7; --brand-line:#c6d6ea; --brand-dark:#0c1c37;
+    --gold:#b98614;
     --danger:#b42318; --danger-soft:#fbe4e1; --danger-line:#e59a90;
     --ok:#066a40; --ok-soft:#e4f6ec; --ok-line:#9fd8b8;
     --warn:#b54708; --warn-soft:#fbf1e2; --warn-line:#f0dcb8;
@@ -42,7 +42,7 @@
   h1{font-size:26px;margin:14px 0 6px;font-weight:700;letter-spacing:-.3px}
   header.top p{margin:0;opacity:.92;font-size:15px;max-width:730px;text-align:justify}
   .head-author{font-size:14px;color:#fff;opacity:.95;margin:6px 0 10px;font-weight:600}
-  .head-author b{color:#f0c14b;font-weight:800}
+  .head-author b{color:#e9be5e;font-weight:800}
   /* ===== Pantalla de acceso ===== */
   body.locked{overflow:hidden}
   #authGate{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,var(--brand),var(--brand-dark));display:flex;align-items:center;justify-content:center;padding:20px}
@@ -64,13 +64,13 @@
   .qbtn:hover{background:var(--brand-dark)}
   #quickResult{margin:14px 0 0 42px}
   .q-msg{border-radius:11px;padding:14px 16px;font-size:14px;font-weight:500;border:1.5px solid}
-  .q-msg.bad{background:var(--danger-soft);border-color:var(--danger-line);color:var(--danger)}
+  .q-msg.bad{background:var(--panel);border-color:var(--line);border-left:5px solid var(--danger);color:var(--danger)}
   .q-msg.ok{background:var(--ok-soft);border-color:var(--ok-line);color:var(--ok)}
   .q-msg.warn{background:var(--warn-soft);border-color:var(--warn-line);color:var(--warn)}
   .q-line{color:var(--ink);font-weight:500;font-size:13px;margin-top:4px}
   /* ===== tags fecha situación ===== */
   .tag{display:inline-block;padding:1px 8px;border-radius:99px;font-size:10.5px;font-weight:800;white-space:nowrap}
-  .tag.post{background:var(--danger-soft);color:var(--danger);border:1px solid var(--danger-line)}
+  .tag.post{background:var(--danger);color:#fff;border:1px solid var(--danger)}
   .tag.ante{background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-line)}
   /* ===== gráfico impacto ===== */
   .chartbox{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;margin-bottom:22px}
@@ -91,15 +91,16 @@
   .top-grid > .step{margin-bottom:0;height:100%}
   @media(max-width:860px){.top-grid{grid-template-columns:1fr}}
   /* ===== flujo de trabajo (cuadros + flechas) ===== */
-  .wf{display:flex;flex-direction:column;align-items:center;margin:14px 0 6px}
-  .wf-box{width:100%;max-width:600px;background:var(--panel);border:1.5px solid var(--brand-line);border-left:5px solid var(--brand);border-radius:12px;padding:13px 18px;box-shadow:var(--shadow)}
+  .wf{display:flex;flex-flow:row wrap;align-items:stretch;justify-content:center;gap:6px;margin:14px 0 6px}
+  .wf-box{flex:1 1 190px;max-width:250px;display:flex;flex-direction:column;background:var(--panel);border:1.5px solid var(--brand-line);border-left:5px solid var(--brand);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}
   .wf-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:5px}
   .wf-badge{background:var(--brand);color:#fff;font-size:11px;font-weight:800;letter-spacing:.6px;padding:3px 13px;border-radius:99px;white-space:nowrap}
   .wf-ic{font-size:21px;line-height:1}
   .wf-title{font-weight:800;color:var(--brand);font-size:15px}
   .wf-desc{color:var(--ink);font-size:13px;margin-top:4px;line-height:1.55}
   .wf-desc b{color:var(--brand-2)}
-  .wf-arrow{color:var(--brand-2);font-size:24px;line-height:1;margin:8px 0}
+  .wf-arrow{display:flex;align-items:center;color:var(--brand-2);font-size:20px;line-height:1;padding:0 2px}
+  @media(max-width:680px){.wf{flex-direction:column;align-items:center}.wf-box{flex-basis:auto;max-width:100%;width:100%}.wf-arrow{transform:rotate(90deg);padding:6px 0}}
   .guia-foot{font-size:11.5px;color:var(--muted);padding:6px 0 10px;border-top:1px solid var(--line);margin-top:12px}
   .head-flex{display:flex;align-items:center;gap:20px;position:relative;flex-wrap:wrap}
   .brand-logo{flex:0 0 100px;width:100px;height:100px;border-radius:50%;box-shadow:0 4px 18px rgba(0,0,0,.28);line-height:0;background:#fff}
@@ -160,7 +161,8 @@
   .alert .aic{font-size:30px;line-height:1}
   .alert h3{margin:0 0 4px;font-size:20px}
   .alert p{margin:0;font-size:14px}
-  .alert.bad{background:var(--danger-soft);border:1.5px solid var(--danger-line);color:var(--danger)}
+  .alert.bad{background:var(--panel);border:1px solid var(--line);border-left:6px solid var(--danger);color:var(--ink)}
+  .alert.bad h3{color:var(--danger)} .alert.bad p{color:var(--muted)}
   .alert.good{background:var(--ok-soft);border:1.5px solid var(--ok-line);color:var(--ok)}
   .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px}
   .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow)}
@@ -174,12 +176,12 @@
            border-bottom:1px solid var(--line);white-space:nowrap;font-size:12px;text-transform:uppercase;letter-spacing:.3px}
   tbody td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
   tbody tr:last-child td{border-bottom:none}
-  tbody tr.match{background:var(--danger-soft)}
+  tbody tr.match{background:var(--panel-2);box-shadow:inset 4px 0 0 var(--danger)}
   .ruc{font-family:'Consolas',monospace;font-weight:700}
   .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700}
-  .pill.ssco{background:#b42318;color:#fff}
-  .pill.nohab{background:#c2410c;color:#fff}
-  .pill.baja{background:#475569;color:#fff}
+  .pill.ssco{background:#a52a1f;color:#fff}
+  .pill.nohab{background:#c2740c;color:#fff}
+  .pill.baja{background:#3f5069;color:#fff}
   .pill+.pill{margin-left:4px}
   .legend{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;margin-bottom:16px}
   .legend summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--brand);padding:11px 15px;user-select:none;list-style:none}
@@ -212,14 +214,23 @@
   .gbox .val{font-size:38px;font-weight:800;letter-spacing:-1px;margin-top:2px}
   .gbox .brk{display:flex;gap:26px;border-left:1px solid rgba(255,255,255,.28);padding-left:24px}
   .gbox .brk span{font-size:12px;opacity:.92}
-  .gbox .brk b{display:block;font-size:19px;font-weight:800;margin-top:3px;color:#f0c14b}
+  .gbox .brk b{display:block;font-size:19px;font-weight:800;margin-top:3px;color:#e9be5e}
   @media(max-width:560px){.gbox .val{font-size:30px}.gbox .brk{border-left:none;padding-left:0}}
+  .impact-card{display:flex;flex-direction:column;gap:12px}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .split-item{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 18px;box-shadow:var(--shadow);border-left:5px solid var(--brand)}
+  .split-item.ssco{border-left-color:#a52a1f}
+  .split-item.est{border-left-color:#c2740c}
+  .split-l{font-size:12.5px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .split-v{font-size:24px;font-weight:800;color:var(--ink);margin-top:5px;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+  .split-s{font-size:11.5px;color:var(--muted);margin-top:2px}
+  @media(max-width:560px){.split{grid-template-columns:1fr}}
   .matchtbl{table-layout:auto}
   .matchtbl thead th{color:var(--ink)}
   .resol{font-size:10.5px;color:var(--muted);margin-top:3px;font-weight:500}
   .verlink{color:var(--brand-2);font-size:12px;font-weight:700;cursor:pointer;display:inline-block;margin-top:6px;white-space:nowrap;user-select:none}
   .verlink:hover{text-decoration:underline}
-  .detrow > td{background:var(--danger-soft);padding:4px 14px 14px !important;border-bottom:1px solid var(--line)}
+  .detrow > td{background:var(--panel-2);box-shadow:inset 4px 0 0 var(--danger);padding:4px 14px 14px !important;border-bottom:1px solid var(--line)}
   .subtbl{width:100%;border-collapse:collapse;font-size:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
   .subtbl thead th{background:var(--brand);color:#fff;padding:7px 10px;font-size:10.5px;text-transform:none;letter-spacing:0;border:none}
   .subtbl td{padding:6px 10px;border-bottom:1px solid var(--line)}
@@ -412,7 +423,7 @@ const GUIA_STEPS = [
   ['⛔','Evita seguir operando','No sigas comprando a ese proveedor mientras mantenga la condición de SSCO.']
 ];
 const GUIA_HTML = `<details class="guia" open><summary>📋 ¿Qué hacer si encuentras un proveedor observado (SSCO / No Habido / de baja)? — Flujo de trabajo</summary>
-<div class="wf">${GUIA_STEPS.map((s,i)=>`<div class="wf-box"><div class="wf-head"><span class="wf-badge">PASO ${i+1}</span><span class="wf-ic">${s[0]}</span></div><div class="wf-title">${s[1]}</div><div class="wf-desc">${s[2]}</div></div>${i<GUIA_STEPS.length-1?'<div class="wf-arrow">▼</div>':''}`).join('')}</div>
+<div class="wf">${GUIA_STEPS.map((s,i)=>`<div class="wf-box"><div class="wf-head"><span class="wf-badge">PASO ${i+1}</span><span class="wf-ic">${s[0]}</span></div><div class="wf-title">${s[1]}</div><div class="wf-desc">${s[2]}</div></div>${i<GUIA_STEPS.length-1?'<div class="wf-arrow">▶</div>':''}`).join('')}</div>
 <div class="guia-foot">Orientación general de apoyo; cada caso debe evaluarse con el detalle del comprobante y la normativa vigente (D. Leg. 1532 y D.S. 319-2023-EF).</div>
 </details>`;
 
@@ -676,6 +687,11 @@ function render(){
   const nNoHab  = groups.filter(g=>g.est && isNoHab(g.est.cond)).length;
   const nBaja   = groups.filter(g=>g.est && !estadoActivo(g.est)).length;
   const nEstado = groups.filter(g=>g.est && (!estadoActivo(g.est)||isNoHab(g.est.cond))).length;
+  // Desglose de impacto por motivo (cada proveedor cuenta una sola vez; SSCO tiene prioridad)
+  const impSSCO  = groups.filter(g=>g.info).reduce((s,g)=>s+g.tImpTotal,0);
+  const impEst   = groups.filter(g=>!g.info && g.est).reduce((s,g)=>s+g.tImpTotal,0);
+  const nSSCOg   = groups.filter(g=>g.info).length;
+  const nEstOnly = groups.filter(g=>!g.info && g.est).length;
   const motivos=[]; if(nSSCO) motivos.push(`${nSSCO} SSCO`); if(nNoHab) motivos.push(`${nNoHab} no habido${nNoHab>1?'s':''}`); if(nBaja) motivos.push(`${nBaja} no activo${nBaja>1?'s':''}`);
   const noEstadoNote = state.estado ? '' : `<div class="note" style="margin-bottom:14px">ℹ️ El padrón de estados del RUC aún no terminó de cargar (o no está disponible). Este resultado se cruzó <b>solo contra SSCO</b>. Espera unos segundos y vuelve a verificar para incluir “no activo / no habido”.</div>`;
   const ab=document.getElementById('alertBox');
@@ -688,9 +704,15 @@ function render(){
       <h3>Sin observaciones</h3>
       <p>Ninguno de los RUC de tu Registro de Compras figura como SSCO${state.estado?' ni con estado distinto de ACTIVO / NO HABIDO':''}. Conserva este resultado como respaldo de tu control interno.</p></div></div>`;
   }
-  document.getElementById('impactBanner').innerHTML = nMatch>0 ? `<div class="gbox">
-    <div><div class="lbl">💰 Impacto Tributario Total Estimado</div><div class="val">${money(tot.tT)}</div></div>
-    <div class="brk"><span>Impacto RENTA (29.5%)<b>${money(tot.tR)}</b></span><span>Impacto IGV (crédito fiscal)<b>${money(tot.tI)}</b></span></div>
+  document.getElementById('impactBanner').innerHTML = nMatch>0 ? `<div class="impact-card">
+    <div class="gbox">
+      <div><div class="lbl">💰 Impacto Tributario Total Estimado</div><div class="val">${money(tot.tT)}</div></div>
+      <div class="brk"><span>Impacto RENTA (29.5%)<b>${money(tot.tR)}</b></span><span>Impacto IGV (crédito fiscal)<b>${money(tot.tI)}</b></span></div>
+    </div>
+    <div class="split">
+      <div class="split-item ssco"><div class="split-l"><span class="pill ssco">SSCO</span> Impacto por SSCO</div><div class="split-v">${money(impSSCO)}</div><div class="split-s">${fmtI(nSSCOg)} proveedor${nSSCOg===1?'':'es'}</div></div>
+      <div class="split-item est"><div class="split-l"><span class="pill baja">ESTADO</span> Impacto por estado del contribuyente</div><div class="split-v">${money(impEst)}</div><div class="split-s">no activo / no habido · ${fmtI(nEstOnly)} proveedor${nEstOnly===1?'':'es'}</div></div>
+    </div>
   </div>` : '';
   document.getElementById('kpis').innerHTML=`
     <div class="kpi"><div class="v">${fmtI(R.totalRows)}</div><div class="l">Comprobantes analizados</div></div>
@@ -715,9 +737,6 @@ function render(){
           <table class="subtbl"><thead><tr><th>Fecha</th><th>Comprobante</th><th class="num">Base</th><th class="num">IGV</th><th class="num">Total</th><th>Situación</th></tr></thead>
           <tbody>${detLines}</tbody></table></td></tr>`;
     }).join('');
-    const maxImp=Math.max.apply(null,groups.map(g=>g.tImpTotal).concat([1]));
-    const chart=groups.slice(0,8).map(g=>{ const w=Math.max(2,Math.round(g.tImpTotal/maxImp*100));
-      return `<div class="bar-row"><div class="bar-lbl" title="${g.ruc}">${g.ruc}</div><div class="bar-track"><div class="bar-fill" style="width:${w}%"></div></div><div class="bar-val">${money(g.tImpTotal)}</div></div>`; }).join('');
     ms.innerHTML=`${noEstadoNote}<div class="sec-title">🚩 Proveedores observados encontrados</div>
       <details class="legend"><summary>ℹ️ ¿Cómo leer esta tabla?</summary>
       <div class="legend-body"><b>Condición</b> (motivo de la observación): <span class="pill ssco">SSCO</span> sin capacidad operativa · <span class="pill nohab">NO HABIDO</span> domicilio no habido · <span class="pill baja">DE BAJA / SUSPENDIDO</span> estado ya no ACTIVO. <i>Un proveedor puede ser SSCO y a la vez seguir ACTIVO y HABIDO: son calificaciones distintas.</i><br>
@@ -729,7 +748,6 @@ function render(){
       <tbody>${rows}</tbody>
       <tfoot><tr><td colspan="4" style="text-align:right;font-weight:700">TOTALES</td><td class="num"><b>${fmtN(tot.tR)}</b></td><td class="num"><b>${fmtN(tot.tI)}</b></td><td class="num"><b>${money(tot.tT)}</b></td></tr></tfoot>
       </table></div>
-      <div class="chartbox"><div class="chart-title">📊 Impacto tributario estimado por proveedor</div>${chart}</div>
       ${GUIA_HTML}`;
   } else {
     ms.innerHTML=`${noEstadoNote}<div class="toolbar"><button class="sec" onclick="window.print()">📄 Descargar informe (PDF)</button></div>`;
