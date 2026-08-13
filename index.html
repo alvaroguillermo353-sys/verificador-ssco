@@ -781,7 +781,7 @@ function buildPrintReport(groups,tot,nMatch,linesMatch){
     <tr><td>Impacto IGV (crédito fiscal)</td><td class="num">${money(tot.tI)}</td></tr>
     <tr class="grand"><td>IMPACTO TRIBUTARIO TOTAL ESTIMADO</td><td class="num">${money(tot.tT)}</td></tr></table>`:'';
   document.getElementById('printReport').innerHTML=`
-    <div class="pr-head"><div class="pr-logo"><svg viewBox="0 0 240 240"><use href="#agLogo"/></svg></div>
+    <div class="pr-head">
       <div><div class="pr-title">Informe de Verificación SSCO y Estado del RUC</div>
       <div class="pr-sub">Cruce del Registro de Compras (SIRE) contra el padrón SSCO y el padrón de estados del RUC — SUNAT</div></div></div>
     <table class="pr-meta">
@@ -793,8 +793,7 @@ function buildPrintReport(groups,tot,nMatch,linesMatch){
       <tr><td>Fecha del informe</td><td>${fechaInf}</td></tr>
     </table>
     ${resumen}${bloques}${totalTable}
-    <div class="pr-foot">Elaborado por <b>CPC Alvaro Guillermo Tinco Llave</b> · AG Asesores Contables · Puerto Maldonado – Perú<br>
-    Informe referencial de apoyo al control interno. Valida contra el comprobante y el padrón vigente. Marco legal: D. Leg. N.° 1532 y D.S. N.° 319-2023-EF.</div>`;
+    <div class="pr-foot">Informe referencial de apoyo al control interno. Valida contra el comprobante y el padrón vigente. Marco legal: D. Leg. N.° 1532 y D.S. N.° 319-2023-EF.</div>`;
 }
 function borderAll(){ const s={style:'thin',color:{argb:'FFC5D8EC'}}; return {top:s,left:s,bottom:s,right:s}; }
 async function exportXLSX(){
