@@ -240,13 +240,35 @@
   .hint,.step-desc{color:var(--muted)}
   tfoot td{background:var(--brand-soft);border-top:2px solid var(--brand-line);color:var(--brand);padding:11px 14px}
   /* ===== Informe imprimible (PDF) ===== */
-  #printReport{display:none}
+  #printReport,#memoReport{display:none}
   @media print{
     body{background:#fff !important;margin:0}
     body > *{display:none !important}
     body > #printReport{display:block !important}
+    body.print-memo > #printReport{display:none !important}
+    body.print-memo > #memoReport{display:block !important}
   }
-  @page{size:A4;margin:12mm}
+  @page{size:A4;margin:16mm}
+  /* ===== Memo a gerencia ===== */
+  #memoReport{font-family:'Segoe UI',Arial,sans-serif;color:#1f2733;font-size:12px;line-height:1.5}
+  .mm-org{font-size:12px;font-weight:800;color:var(--brand);text-transform:uppercase;letter-spacing:.4px}
+  .mm-t{font-size:22px;font-weight:800;letter-spacing:2px;text-align:center;color:var(--brand);border-bottom:2px solid var(--brand);padding-bottom:8px;margin:6px 0 16px}
+  .mm-meta{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:12px}
+  .mm-meta td{padding:4px 6px;vertical-align:top}
+  .mm-meta td:first-child{font-weight:800;color:var(--brand);width:90px;white-space:nowrap}
+  .mm-p{margin:0 0 12px;text-align:justify}
+  .mm-tbl{width:100%;border-collapse:collapse;font-size:11px;margin:6px 0 14px}
+  .mm-tbl th{background:var(--brand);color:#fff;text-align:left;padding:6px 8px;font-size:10px}
+  .mm-tbl td{padding:5px 8px;border:1px solid #d3ddec}
+  .mm-tbl .num{text-align:right;white-space:nowrap}
+  .mm-tbl tfoot td{background:#eaf1f9;font-weight:800}
+  .mm-r{margin:0 0 12px}
+  .mm-r b{color:var(--brand)}
+  .mm-r ul{margin:6px 0 0;padding-left:20px}
+  .mm-r li{margin-bottom:4px}
+  .mm-firma{margin-top:40px;font-size:12px}
+  .mm-firma .ln{margin-bottom:2px}
+  .mm-foot{margin-top:22px;padding-top:8px;border-top:1px solid #d3ddec;font-size:9.5px;color:#6a5f66;line-height:1.5}
   #printReport{font-family:'Segoe UI',Arial,sans-serif;color:#26202b;font-size:11px}
   .pr-head{display:flex;align-items:center;gap:14px;border-bottom:3px solid var(--brand);padding-bottom:10px;margin-bottom:12px}
   .pr-logo{width:60px;height:60px;flex:0 0 60px}.pr-logo svg{width:100%;height:100%}
@@ -401,6 +423,7 @@
 </div>
 
 <div id="printReport"></div>
+<div id="memoReport"></div>
 
 <script>
 "use strict";
@@ -743,7 +766,8 @@ function render(){
       <b>Situación</b> (solo SSCO): <span class="tag post">Posterior</span> = compraste después de la calificación (mayor riesgo) · <span class="tag ante">Anterior</span> = compraste antes.<br>
       Cifras estimadas; valida contra el comprobante y el SIRE.</div></details>
       <div class="toolbar"><button class="sec" onclick="exportXLSX()">⬇️ Descargar Excel</button>
-        <button class="sec" onclick="window.print()">📄 Descargar informe (PDF)</button></div>
+        <button class="sec" onclick="window.print()">📄 Descargar informe (PDF)</button>
+        <button class="sec" onclick="printMemo()">📝 Memo a gerencia</button></div>
       <div class="tablewrap"><table class="matchtbl"><thead><tr><th>RUC proveedor</th><th>Razón social</th><th>Condición</th><th class="num">Comp.</th><th class="num">Imp. Renta</th><th class="num">Imp. IGV</th><th class="num">Impacto total</th></tr></thead>
       <tbody>${rows}</tbody>
       <tfoot><tr><td colspan="4" style="text-align:right;font-weight:700">TOTALES</td><td class="num"><b>${fmtN(tot.tR)}</b></td><td class="num"><b>${fmtN(tot.tI)}</b></td><td class="num"><b>${money(tot.tT)}</b></td></tr></tfoot>
@@ -794,6 +818,46 @@ function buildPrintReport(groups,tot,nMatch,linesMatch){
     </table>
     ${resumen}${bloques}${totalTable}
     <div class="pr-foot">Informe referencial de apoyo al control interno. Valida contra el comprobante y el padrón vigente. Marco legal: D. Leg. N.° 1532 y D.S. N.° 319-2023-EF.</div>`;
+}
+function buildMemo(groups,tot,nMatch){
+  const R=state.rce||{}; const now=new Date();
+  const fecha=now.toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'});
+  const nSSCO=groups.filter(g=>g.info).length, nEst=groups.filter(g=>!g.info&&g.est).length;
+  const mot=[]; if(nSSCO)mot.push(`${nSSCO} SSCO`); if(nEst)mot.push(`${nEst} con estado observado (no activo / no habido)`);
+  const filas=groups.map(g=>`<tr><td>${g.ruc}</td><td>${groupRazon(g)}</td><td>${groupPills(g).map(p=>p.txt).join(' / ')}</td><td class="num">${money(g.tImpTotal)}</td></tr>`).join('');
+  document.getElementById('memoReport').innerHTML=`
+    <div class="mm-org">${R.ownName||R.ownRuc?('RUC '+(R.ownRuc||'')+(R.ownName?(' — '+R.ownName):'')):'&nbsp;'}</div>
+    <div class="mm-t">MEMORÁNDUM</div>
+    <table class="mm-meta">
+      <tr><td>PARA:</td><td>Gerencia General</td></tr>
+      <tr><td>DE:</td><td>Área Contable</td></tr>
+      <tr><td>ASUNTO:</td><td>Contingencia tributaria — proveedores observados en el Registro de Compras</td></tr>
+      <tr><td>PERIODO:</td><td>${fmtPeriodo(R.periodo)}</td></tr>
+      <tr><td>FECHA:</td><td>${fecha}</td></tr>
+    </table>
+    <p class="mm-p">Por medio del presente informo que, como resultado de la verificación del Registro de Compras del periodo indicado contra los padrones de SUNAT (Sujetos Sin Capacidad Operativa y estado del RUC), se detectaron <b>${nMatch} proveedor(es) observado(s)</b>${mot.length?(' ('+mot.join(' · ')+')'):''}, con un <b>impacto tributario estimado de ${money(tot.tT)}</b> (Renta ${money(tot.tR)} + IGV ${money(tot.tI)}).</p>
+    <table class="mm-tbl"><thead><tr><th>RUC</th><th>Razón social</th><th>Condición</th><th class="num">Impacto estimado</th></tr></thead>
+      <tbody>${filas}</tbody>
+      <tfoot><tr><td colspan="3">TOTAL ESTIMADO</td><td class="num">${money(tot.tT)}</td></tr></tfoot></table>
+    <div class="mm-r"><b>Recomendación:</b>
+      <ul>
+        <li>No utilizar el crédito fiscal (IGV) ni el costo o gasto de dichos comprobantes.</li>
+        <li>Evaluar la rectificación de las declaraciones afectadas, de corresponder.</li>
+        <li>Requerir al proveedor el sustento de la fehaciencia de las operaciones.</li>
+        <li>Suspender nuevas adquisiciones a dichos proveedores mientras mantengan la condición.</li>
+      </ul></div>
+    <p class="mm-p">Se eleva el presente para su conocimiento y las decisiones que la Gerencia estime pertinentes.</p>
+    <div class="mm-firma"><div class="ln">Atentamente,</div><br><br>_______________________________<br>Área Contable</div>
+    <div class="mm-foot">Documento interno de control. Cifras estimadas a partir del Registro de Compras; validar contra el comprobante y el padrón vigente antes de adoptar decisiones. Marco legal: D. Leg. N.° 1532 y D.S. N.° 319-2023-EF.</div>`;
+}
+function printMemo(){
+  const groups=window._lastGroups||[]; const tot=window._lastTot||{tR:0,tI:0,tT:0};
+  if(!groups.length){ alert('No hay proveedores observados para elaborar el memo.'); return; }
+  buildMemo(groups,tot,groups.length);
+  document.body.classList.add('print-memo');
+  const clear=()=>{ document.body.classList.remove('print-memo'); window.removeEventListener('afterprint',clear); };
+  window.addEventListener('afterprint',clear);
+  setTimeout(()=>window.print(),40);
 }
 function borderAll(){ const s={style:'thin',color:{argb:'FFC5D8EC'}}; return {top:s,left:s,bottom:s,right:s}; }
 async function exportXLSX(){
