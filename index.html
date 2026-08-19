@@ -433,7 +433,7 @@ const EMBEDDED_SSCO = {"actualizado":"2026-06-30","fuente":"SUNAT (incrustado)",
 
 const RUC_RE = /\b(?:10|15|16|17|20)\d{9}\b/g;
 const RUC_TEST = /(?:10|15|16|17|20)\d{9}/;
-const norm = s => (s==null?'':String(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().trim();
+const norm = s => (s==null?'':String(s)).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
 const isRuc = s => /^(?:10|15|16|17|20)\d{9}$/.test(String(s==null?'':s).trim());
 const fmtN = n => (isFinite(n)? n.toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—');
 const fmtI = n => (isFinite(n)? n.toLocaleString('es-PE') : '0');
@@ -765,7 +765,8 @@ function render(){
       <div class="legend-body"><b>Condición</b> (motivo de la observación): <span class="pill ssco">SSCO</span> sin capacidad operativa · <span class="pill nohab">NO HABIDO</span> domicilio no habido · <span class="pill baja">DE BAJA / SUSPENDIDO</span> estado ya no ACTIVO. <i>Un proveedor puede ser SSCO y a la vez seguir ACTIVO y HABIDO: son calificaciones distintas.</i><br>
       <b>Situación</b> (solo SSCO): <span class="tag post">Posterior</span> = compraste después de la calificación (mayor riesgo) · <span class="tag ante">Anterior</span> = compraste antes.<br>
       Cifras estimadas; valida contra el comprobante y el SIRE.</div></details>
-      <div class="toolbar"><button class="sec" onclick="exportXLSX()">⬇️ Descargar Excel</button>
+      <div class="toolbar"><button class="sec" onclick="exportXLSX()">⬇️ Excel (observados)</button>
+        <button class="sec" onclick="exportXLSXfull()">📗 Excel (completo)</button>
         <button class="sec" onclick="window.print()">📄 Descargar informe (PDF)</button>
         <button class="sec" onclick="printMemo()">📝 Memo a gerencia</button></div>
       <div class="tablewrap"><table class="matchtbl"><thead><tr><th>RUC proveedor</th><th>Razón social</th><th>Condición</th><th class="num">Comp.</th><th class="num">Imp. Renta</th><th class="num">Imp. IGV</th><th class="num">Impacto total</th></tr></thead>
@@ -774,7 +775,7 @@ function render(){
       </table></div>
       ${GUIA_HTML}`;
   } else {
-    ms.innerHTML=`${noEstadoNote}<div class="toolbar"><button class="sec" onclick="window.print()">📄 Descargar informe (PDF)</button></div>`;
+    ms.innerHTML=`${noEstadoNote}<div class="toolbar"><button class="sec" onclick="exportXLSXfull()">📗 Excel (completo)</button><button class="sec" onclick="window.print()">📄 Descargar informe (PDF)</button></div>`;
   }
   buildPrintReport(groups,tot,nMatch,linesMatch);
   document.getElementById('results').style.display='block';
@@ -892,6 +893,68 @@ async function exportXLSX(){
   const buf=await wb.xlsx.writeBuffer();
   const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='reporte_observados.xlsx'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+}
+/* ---------- Excel COMPLETO: todos los comprobantes; los no observados = ACTIVO / HABIDO ---------- */
+async function exportXLSXfull(){
+  const R=state.rce||{}; const detail=(R.detail)||[];
+  if(!detail.length){ alert('Primero carga y verifica un Registro de Compras.'); return; }
+  if(typeof ExcelJS==='undefined'){ alert('No se pudo cargar el generador de Excel (revisa tu conexión a internet).'); return; }
+  const S=state.ssco;
+  const wb=new ExcelJS.Workbook(); const ws=wb.addWorksheet('Todos los comprobantes'); const G='FF1C4E86';
+  ws.mergeCells('A1:L1'); ws.getCell('A1').value='REPORTE COMPLETO DEL REGISTRO DE COMPRAS — VERIFICACIÓN SSCO / ESTADO DEL RUC';
+  ws.getCell('A1').font={bold:true,size:13,color:{argb:G}};
+  ws.mergeCells('A2:L2'); ws.getCell('A2').value=(R.ownRuc?('Contribuyente: RUC '+R.ownRuc+(R.ownName?(' — '+R.ownName):'')):'')+(R.periodo?('     Periodo: '+fmtPeriodo(R.periodo)):'');
+  ws.getCell('A2').font={italic:true,size:10,color:{argb:'FF666666'}};
+  ws.mergeCells('A3:L3'); ws.getCell('A3').value='Los proveedores sin observación se muestran como ACTIVO / HABIDO (no figuran en los padrones de observados de SUNAT, que se actualizan a diario).';
+  ws.getCell('A3').font={italic:true,size:9,color:{argb:'FF888888'}};
+  const headerRow=5;
+  const cols=['RUC','Razón social','Estado del RUC','Detalle / motivo','Fecha','Comprobante','Base','IGV','Total','Impacto Renta (29.5%)','Impacto IGV','Impacto total'];
+  const NUM0=6, NUM1=11; // Base..Impacto total (0-based)
+  const hrow=ws.getRow(headerRow); cols.forEach((c,i)=>{ const cell=hrow.getCell(i+1); cell.value=c;
+    cell.font={bold:true,color:{argb:'FFFFFFFF'}}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:G}};
+    cell.alignment={horizontal:(i>=NUM0&&i<=NUM1)?'right':'left',vertical:'middle',wrapText:true}; cell.border=borderAll(); });
+  hrow.height=30;
+  let r=headerRow+1, tR=0,tI=0,tT=0, nObs=0, nOk=0;
+  detail.forEach(l=>{
+    const info=(S&&S.has(l.ruc))?S.get(l.ruc):null;
+    const est=estadoOf(l.ruc);
+    const obs = info || (est && (!estadoActivo(est)||isNoHab(est.cond)));
+    const g={ruc:l.ruc,info,est:est||null,lines:[l]};
+    let estadoTxt, detTxt, razon, impR=0,impI=0,impT=0;
+    if(obs){
+      nObs++;
+      estadoTxt=groupPills(g).map(p=>p.txt).join(' · ');
+      detTxt=groupDet(g);
+      razon=groupRazon(g);
+      const noIgv=!(l.igv>0);
+      impR=(noIgv?l.importe:l.base)*0.295; impI=l.igv; impT=impR+impI;
+      tR+=impR; tI+=impI; tT+=impT;
+    } else {
+      nOk++;
+      estadoTxt='ACTIVO / HABIDO';
+      detTxt='';
+      razon=l.razon||'';
+    }
+    const row=ws.getRow(r++);
+    const vals=[l.ruc,razon,estadoTxt,detTxt,l.fecha||'',l.cp||'',l.base||0,l.igv||0,l.importe||0,impR,impI,impT];
+    vals.forEach((v,i)=>{ const cell=row.getCell(i+1); cell.value=v; cell.border=borderAll();
+      if(i>=NUM0&&i<=NUM1){ cell.numFmt='#,##0.00'; cell.alignment={horizontal:'right'}; }
+      if(i===0) cell.font={name:'Consolas'}; });
+    const ec=row.getCell(3);
+    if(obs){ ec.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFBE4E1'}}; ec.font={bold:true,color:{argb:'FFB42318'}}; }
+    else { ec.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE4F6EC'}}; ec.font={color:{argb:'FF066A40'}}; }
+  });
+  const trow=ws.getRow(r); trow.getCell(9).value='TOTAL IMPACTO (solo observados)'; trow.getCell(9).alignment={horizontal:'right'}; trow.getCell(9).font={bold:true};
+  [[10,tR],[11,tI],[12,tT]].forEach(([c,v])=>{ const cell=trow.getCell(c); cell.value=v; cell.numFmt='#,##0.00';
+    cell.font={bold:true}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE8F0F9'}}; cell.alignment={horizontal:'right'}; cell.border=borderAll(); });
+  const srow=ws.getRow(r+2); srow.getCell(1).value='Resumen: '+fmtI(detail.length)+' comprobantes · '+fmtI(nObs)+' observados · '+fmtI(nOk)+' ACTIVO / HABIDO';
+  srow.getCell(1).font={italic:true,size:10,color:{argb:'FF666666'}};
+  ws.columns=[{width:14},{width:34},{width:20},{width:34},{width:12},{width:16},{width:12},{width:11},{width:13},{width:17},{width:13},{width:14}];
+  ws.views=[{state:'frozen',ySplit:headerRow}];
+  ws.autoFilter={from:{row:headerRow,column:1},to:{row:headerRow,column:12}};
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='reporte_completo.xlsx'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500);
 }
 /* ---------- UI ---------- */
 function tag(id,name,count,label){ document.getElementById(id).innerHTML=`<span class="filetag">✓ ${name} · ${fmtI(count)} ${label}</span><button class="clear" data-clr="${id}">quitar</button>`; }
