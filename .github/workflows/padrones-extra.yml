@@ -1,0 +1,31 @@
+name: Padrones adicionales SUNAT (Buenos Contribuyentes + Agentes de Retención)
+
+on:
+  schedule:
+    - cron: "40 9 * * 1"   # cada lunes 09:40 UTC (~04:40 Perú). Cámbialo si quieres.
+  workflow_dispatch:         # permite correrlo a mano desde la pestaña Actions
+
+permissions:
+  contents: write
+
+jobs:
+  padrones:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generar padrones (Buenos Contribuyentes + Agentes de Retención)
+        run: python scripts/gen_padrones_extra.py .
+
+      - name: Commit si hay cambios
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add buenos.txt.gz buenos.meta.json agentes.txt.gz agentes.meta.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "Sin cambios en los padrones."
+          else
+            git commit -m "Actualiza padrones adicionales (buenos contribuyentes / agentes de retención)"
+            git push
+          fi
